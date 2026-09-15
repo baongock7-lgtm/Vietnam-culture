@@ -1,0 +1,1068 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Viet Culture · Mekong v0.2</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --paper:#f4f1ea;
+  --ink:#111713;
+  --muted:#6d706b;
+  --deep:#173f34;
+  --line:#cfc8ba;
+  --soft:#ebe6dc;
+  --white:#fffdfa;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+button,input{font:inherit}
+button{cursor:pointer}
+h1,h2,h3,h4{
+  font-family:Georgia, "Times New Roman", serif;
+  font-weight:500;
+  letter-spacing:-.02em;
+}
+.shell{
+  max-width:1440px;
+  margin:0 auto;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:300px 1fr;
+  background:var(--paper);
+}
+.sidebar{
+  padding:28px 20px 40px;
+  border-right:1px solid var(--line);
+  background:rgba(244,241,234,.96);
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:700;
+  letter-spacing:.11em;
+  font-size:12px;
+}
+.mark{
+  width:30px;height:30px;
+  border:1px solid var(--ink);
+  display:grid;place-items:center;
+  font-family:Georgia;
+  font-size:16px;
+  background:transparent;
+}
+.kicker{
+  margin-top:30px;
+  font-size:10px;
+  letter-spacing:.17em;
+  text-transform:uppercase;
+  color:var(--muted);
+  font-weight:700;
+}
+.sidebar h1{
+  font-size:31px;
+  line-height:1.08;
+  margin:8px 0 10px;
+}
+.muted{
+  color:var(--muted);
+  line-height:1.55;
+  font-size:13px;
+}
+.search{margin-top:22px;position:relative}
+.search input{
+  width:100%;
+  padding:12px 12px 12px 34px;
+  border:none;
+  border-bottom:1px solid var(--ink);
+  background:transparent;
+  outline:none;
+  border-radius:0;
+}
+.search span{
+  position:absolute;
+  left:2px;top:10px;
+  color:var(--muted);
+}
+.filters{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:18px 0 16px;
+}
+.chip{
+  border:none;
+  border-bottom:1px solid transparent;
+  background:transparent;
+  padding:5px 0;
+  font-size:11px;
+  font-weight:600;
+  color:var(--muted);
+}
+.chip.on{
+  color:var(--ink);
+  border-bottom-color:var(--ink);
+}
+.result-title{
+  font-size:10px;
+  color:var(--muted);
+  font-weight:700;
+  margin:20px 0 8px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+}
+.results{
+  display:grid;
+  gap:0;
+  max-height:52vh;
+  overflow:auto;
+}
+.result{
+  border:none;
+  border-top:1px solid var(--line);
+  background:transparent;
+  padding:12px 0;
+  text-align:left;
+  display:block;
+}
+.result:last-child{border-bottom:1px solid var(--line)}
+.icon{display:none}
+.result strong{
+  font-size:13px;
+  font-weight:650;
+  display:block;
+}
+.result small{
+  color:var(--muted);
+  font-size:10px;
+  display:block;
+  margin-top:3px;
+}
+.main{
+  position:relative;
+  min-width:0;
+}
+#map{
+  height:100vh;
+  min-height:760px;
+  background:#d9ddd5;
+  filter:saturate(.78) contrast(.96);
+}
+.leaflet-control-attribution{font-size:8px!important}
+.top-overlay{
+  position:absolute;
+  z-index:700;
+  left:22px;
+  right:22px;
+  top:18px;
+  display:flex;
+  justify-content:space-between;
+  pointer-events:none;
+}
+.glass{
+  pointer-events:auto;
+  background:rgba(244,241,234,.90);
+  border:1px solid rgba(17,23,19,.16);
+  backdrop-filter:blur(10px);
+  padding:9px 11px;
+  font-size:10px;
+}
+.live-stat{font-weight:650}
+.live-stat span{color:var(--deep)}
+.story-card{
+  position:absolute;
+  z-index:700;
+  right:22px;
+  bottom:22px;
+  width:390px;
+  background:var(--paper);
+  border:1px solid var(--line);
+  box-shadow:none;
+}
+.story-img{
+  height:220px;
+  background:#d8d2c7;
+  background-size:cover;
+  background-position:center;
+  position:relative;
+}
+.story-img:after{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(transparent 62%,rgba(0,0,0,.18));
+}
+.story-tag{
+  position:absolute;
+  left:12px;
+  top:12px;
+  z-index:2;
+  background:var(--paper);
+  border:1px solid var(--line);
+  padding:5px 7px;
+  font-size:9px;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+  font-weight:700;
+}
+.story-body{padding:16px 16px 18px}
+.story-body h3{
+  font-size:25px;
+  line-height:1.16;
+  margin:8px 0 8px;
+}
+.story-body p{
+  font-size:13px;
+  color:var(--muted);
+  line-height:1.6;
+  margin:0 0 16px;
+}
+.primary{
+  border:none;
+  background:var(--ink);
+  color:white;
+  padding:11px 14px;
+  font-weight:650;
+  font-size:12px;
+  border-radius:0;
+}
+.ghost{
+  border:1px solid var(--ink);
+  background:transparent;
+  padding:10px 13px;
+  font-weight:650;
+  color:var(--ink);
+  font-size:12px;
+  border-radius:0;
+}
+.custom-pin{background:transparent;border:none}
+.pin-dot{
+  width:18px;height:18px;
+  border-radius:50%;
+  background:var(--deep);
+  border:2px solid var(--paper);
+  box-shadow:0 0 0 1px rgba(17,23,19,.22);
+  font-size:0;
+}
+.drawer{
+  position:fixed;
+  z-index:2000;
+  top:0;
+  right:-560px;
+  width:min(560px,100%);
+  height:100vh;
+  background:var(--paper);
+  border-left:1px solid var(--line);
+  transition:right .34s cubic-bezier(.2,.8,.2,1);
+  overflow:auto;
+  box-shadow:none;
+}
+.drawer.open{right:0}
+.drawer-hero{
+  height:320px;
+  background:#d4cec3;
+  background-size:cover;
+  background-position:center;
+  position:relative;
+}
+.drawer-hero:after{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(transparent 58%,rgba(0,0,0,.45));
+}
+.close{
+  position:absolute;
+  z-index:3;
+  right:12px;top:12px;
+  width:34px;height:34px;
+  border:1px solid var(--ink);
+  border-radius:0;
+  background:var(--paper);
+  font-size:18px;
+}
+.hero-label{
+  position:absolute;
+  left:20px;
+  bottom:18px;
+  z-index:2;
+  color:white;
+}
+.hero-label small{
+  font-size:9px;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  font-weight:700;
+}
+.hero-label h2{
+  font-size:36px;
+  line-height:1.02;
+  margin:6px 0 0;
+}
+.drawer-body{padding:24px 22px 50px}
+.meta{
+  display:flex;
+  gap:8px 14px;
+  flex-wrap:wrap;
+  margin:0 0 18px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--line);
+}
+.tag{
+  font-size:10px;
+  padding:0;
+  color:var(--muted);
+  font-weight:650;
+  background:transparent;
+}
+.lead{
+  font-family:Georgia, "Times New Roman", serif;
+  font-size:20px;
+  line-height:1.55;
+  margin-bottom:22px;
+}
+.section{
+  border-top:1px solid var(--line);
+  padding-top:18px;
+  margin-top:24px;
+}
+.section h4{
+  margin:0 0 8px;
+  font-family:Inter, ui-sans-serif, system-ui;
+  font-size:10px;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  font-weight:700;
+}
+.relation{
+  display:grid;
+  grid-template-columns:88px 1fr;
+  gap:12px;
+  padding:10px 0;
+  border-bottom:1px solid var(--line);
+  font-size:12px;
+  align-items:start;
+}
+.relation b{
+  color:var(--muted);
+  font-size:10px;
+  letter-spacing:.06em;
+}
+.source{
+  background:transparent;
+  border-left:2px solid var(--ink);
+  padding:4px 0 4px 12px;
+  font-size:12px;
+  line-height:1.55;
+}
+.source a{
+  color:var(--deep);
+  font-weight:650;
+  text-decoration:none;
+}
+.story-modal{
+  position:fixed;
+  inset:0;
+  z-index:3000;
+  background:rgba(20,22,20,.82);
+  display:none;
+  place-items:center;
+  padding:20px;
+}
+.story-modal.open{display:grid}
+.story-player{
+  width:min(840px,100%);
+  background:var(--paper);
+  display:grid;
+  grid-template-columns:1.05fr .95fr;
+  border:1px solid rgba(255,255,255,.14);
+}
+.player-img{
+  min-height:560px;
+  background:#cfc7ba;
+  background-size:cover;
+  background-position:center;
+  position:relative;
+}
+.player-img:after{
+  content:"";
+  position:absolute;inset:0;
+  background:linear-gradient(transparent 70%,rgba(0,0,0,.25));
+}
+.player-close{
+  position:absolute;
+  right:12px;top:12px;
+  z-index:2;
+  border:1px solid var(--ink);
+  background:var(--paper);
+  border-radius:0;
+  width:34px;height:34px;
+}
+.player-body{
+  padding:36px 30px 28px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+}
+.progress{
+  display:flex;
+  gap:4px;
+  margin-bottom:22px;
+}
+.bar{
+  height:2px;
+  flex:1;
+  background:#d7d0c5;
+}
+.bar.done{background:var(--ink)}
+.player-body h2{
+  font-size:36px;
+  line-height:1.05;
+  margin:8px 0 14px;
+}
+.player-body p{
+  font-size:15px;
+  line-height:1.75;
+  color:#555b56;
+}
+.controls{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  margin-top:24px;
+}
+.mobile-nav{display:none}
+.empty{
+  padding:18px 0;
+  text-align:left;
+  color:var(--muted);
+  font-size:12px;
+}
+@media(max-width:780px){
+  .shell{display:block}
+  .sidebar{
+    position:absolute;
+    z-index:900;
+    left:0;right:0;top:0;
+    border-right:none;
+    border-bottom:1px solid var(--line);
+    padding:12px 14px 8px;
+    background:rgba(244,241,234,.96);
+  }
+  .brand,.sidebar>.kicker,.sidebar>h1,.sidebar>.muted{display:none}
+  .search{margin:0}
+  .search input{padding-left:28px}
+  .filters{
+    margin:9px 0 0;
+    white-space:nowrap;
+    overflow:auto;
+    flex-wrap:nowrap;
+    gap:14px;
+  }
+  .results{display:none}
+  .main,#map{height:100vh;min-height:100vh}
+  .top-overlay{top:108px;left:10px;right:10px}
+  .top-overlay .glass:last-child{display:none}
+  .story-card{
+    left:10px;right:10px;bottom:64px;width:auto;
+  }
+  .story-img{height:135px}
+  .story-body{padding:12px}
+  .story-body h3{font-size:21px}
+  .drawer{width:100%}
+  .drawer-hero{height:240px}
+  .hero-label h2{font-size:30px}
+  .lead{font-size:18px}
+  .story-player{
+    display:block;
+    max-height:92vh;
+    overflow:auto;
+  }
+  .player-img{min-height:240px;height:240px}
+  .player-body{padding:22px 18px 24px}
+  .player-body h2{font-size:29px}
+  .mobile-nav{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    position:fixed;
+    z-index:1500;
+    left:0;right:0;bottom:0;
+    padding:9px 8px 14px;
+    background:rgba(244,241,234,.98);
+    border-top:1px solid var(--line);
+  }
+  .mobile-nav button{
+    border:none;
+    background:transparent;
+    font-size:9px;
+    letter-spacing:.04em;
+    font-weight:700;
+    color:var(--muted);
+  }
+  .mobile-nav span{display:none}
+}
+
+/* --- v0.3.1 product layer --- */
+.map-tools{
+  position:absolute;z-index:710;left:22px;bottom:22px;
+  display:flex;gap:8px;align-items:center
+}
+.tool-btn{
+  border:1px solid var(--ink);background:rgba(244,241,234,.94);
+  color:var(--ink);padding:9px 11px;font-size:10px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;border-radius:0
+}
+.tool-btn.active{background:var(--ink);color:white}
+.trail-panel{
+  position:absolute;z-index:705;left:22px;bottom:70px;width:330px;
+  background:rgba(244,241,234,.97);border:1px solid var(--ink);
+  display:none;max-height:56vh;overflow:auto
+}
+.trail-panel.open{display:block}
+.trail-head{padding:14px 14px 10px;border-bottom:1px solid var(--ink)}
+.trail-head .eyebrow{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.trail-head h3{font-size:24px;margin:5px 0 4px}
+.trail-item{
+  width:100%;border:0;border-bottom:1px solid var(--line);background:transparent;
+  text-align:left;padding:12px 14px
+}
+.trail-item strong{display:block;font-family:Georgia,serif;font-size:17px;font-weight:500}
+.trail-item small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.trail-stop{
+  display:grid;grid-template-columns:26px 1fr;gap:8px;padding:10px 0;border-top:1px solid var(--line)
+}
+.trail-stop .n{font-family:Georgia,serif;font-size:18px}
+.trail-stop button{border:0;background:transparent;text-align:left;padding:0;font-family:Georgia,serif;font-size:15px}
+.passport-drawer{
+  position:fixed;z-index:2100;left:-380px;top:0;width:min(380px,100%);height:100vh;
+  background:var(--paper);border-right:1px solid var(--ink);transition:left .3s ease;overflow:auto
+}
+.passport-drawer.open{left:0}
+.passport-head{padding:18px 18px 14px;border-bottom:1px solid var(--ink)}
+.passport-head .top{display:flex;justify-content:space-between;align-items:center}
+.passport-head h2{font-size:34px;margin:10px 0 4px}
+.passport-body{padding:0 18px 40px}
+.passport-stat{display:grid;grid-template-columns:1fr auto;padding:12px 0;border-bottom:1px solid var(--line)}
+.passport-stat span:first-child{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.passport-stat b{font-family:Georgia,serif;font-size:20px;font-weight:500}
+.saved-item{padding:14px 0;border-bottom:1px solid var(--line)}
+.saved-item button{border:0;background:transparent;text-align:left;padding:0}
+.saved-item strong{font-family:Georgia,serif;font-size:18px;font-weight:500}
+.saved-item small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.drawer-actions{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 4px}
+.save-btn.saved{background:var(--ink);color:white}
+.rabbit{
+  margin-top:24px;border-top:1px solid var(--ink);padding-top:16px
+}
+.rabbit h4{font-family:Inter,ui-sans-serif,system-ui;font-size:10px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 8px}
+.rabbit-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line)}
+.rabbit-card{
+  border:0;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+  background:transparent;text-align:left;padding:12px 10px 12px 0;min-height:92px
+}
+.rabbit-card:nth-child(2n){border-right:0;padding-left:10px}
+.rabbit-card small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.08em}
+.rabbit-card strong{font-family:Georgia,serif;font-size:16px;line-height:1.15;font-weight:500;display:block;margin-top:5px}
+.geo-note{font-size:10px;color:var(--muted);padding:10px 14px;border-top:1px solid var(--line);line-height:1.45}
+@media(max-width:780px){
+  .map-tools{left:10px;bottom:58px}
+  .trail-panel{left:10px;right:10px;bottom:105px;width:auto;max-height:48vh}
+  .story-card{bottom:112px}
+}
+
+
+/* --- v0.3.2 distinct detail types --- */
+.detail-mode{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.place-sheet .lead{font-family:Georgia,"Times New Roman",serif;font-size:20px}
+.place-facts{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--line);margin-top:18px}
+.place-fact{padding:12px 10px 12px 0;border-bottom:1px solid var(--line)}
+.place-fact:nth-child(2n){padding-left:10px;border-left:1px solid var(--line)}
+.place-fact small,.person-meta small{display:block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.place-fact b{font-family:Georgia,serif;font-weight:500;font-size:16px}
+.story-sheet .lead{font-family:Georgia,serif;font-size:24px;line-height:1.48}
+.story-opening{font-family:Georgia,serif;font-size:16px;line-height:1.7;border-left:2px solid var(--ink);padding-left:15px;margin:18px 0}
+.story-path{margin-top:20px}
+.story-path .step{display:grid;grid-template-columns:32px 1fr;border-top:1px solid var(--line);padding:11px 0}
+.story-path .step span{font-family:Georgia,serif;font-size:18px}
+.story-path .step b{font-weight:600;font-size:12px}
+.person-sheet .drawer-hero{height:380px}
+.person-intro{display:grid;grid-template-columns:110px 1fr;gap:18px;margin:6px 0 20px}
+.person-monogram{width:110px;height:135px;border:1px solid var(--ink);display:grid;place-items:center;font-family:Georgia,serif;font-size:42px}
+.person-meta{font-size:13px;line-height:1.55}
+.person-quote{font-family:Georgia,serif;font-size:25px;line-height:1.35;margin:24px 0;padding:20px 0;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink)}
+.archive-strip{margin-top:22px;padding-top:14px;border-top:1px solid var(--ink)}
+.archive-strip h4{font-family:Inter,system-ui;font-size:9px;letter-spacing:.14em;text-transform:uppercase;margin:0 0 10px}
+.archive-item{display:grid;grid-template-columns:80px 1fr;padding:9px 0;border-top:1px solid var(--line);font-size:11px}
+.archive-item span:first-child{color:var(--muted);text-transform:uppercase;font-size:9px;letter-spacing:.08em}
+@media(max-width:780px){
+ .place-facts{grid-template-columns:1fr}
+ .place-fact:nth-child(2n){padding-left:0;border-left:0}
+ .person-intro{grid-template-columns:86px 1fr}
+ .person-monogram{width:86px;height:108px;font-size:34px}
+ .story-sheet .lead{font-size:21px}
+}
+
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+<div class="brand"><div class="mark">V</div> VIET CULTURE</div>
+<div class="kicker">Mekong Beta</div>
+<h1>Văn hóa miền Tây,<br>trên một bản đồ sống.</h1>
+<p class="muted">Tìm theo địa điểm, thực hành, cộng đồng hoặc nhân vật. Mỗi mục đều dẫn về nguồn và các mối liên hệ văn hóa.</p>
+<div class="search"><span>⌕</span><input id="q" placeholder="Tìm Óc Eo, Rô-băm, gác kèo ong..."></div>
+<div class="filters" id="filters">
+<button class="chip on" data-filter="all">Tất cả</button><button class="chip" data-filter="Địa điểm">Địa điểm</button><button class="chip" data-filter="Di sản">Di sản</button><button class="chip" data-filter="Nghệ nhân">Nghệ nhân</button><button class="chip" data-filter="Âm nhạc">Âm nhạc</button><button class="chip" data-filter="Khmer">Khmer</button>
+</div>
+<div class="result-title"><span id="count">104</span> kết quả</div><div class="results" id="results"></div>
+</aside>
+<main class="main"><div id="map"></div>
+<div class="top-overlay"><div class="glass live-stat"><span id="mappedCount">0</span> điểm đã định vị · 104 mục trong dữ liệu</div><div class="glass live-stat">Mekong cultural index</div></div>
+<article class="story-card"><div class="story-img" id="featureImg"><div class="story-tag">ĐỌC GỢI Ý</div></div><div class="story-body"><div class="kicker" style="margin-top:0">U MINH · CÀ MAU</div><h3>Gác kèo ong ở U Minh</h3><p>Một thực hành nghề gắn với rừng tràm, mùa hoa, tập tính ong và kinh nghiệm truyền qua nhiều thế hệ.</p><div style="display:flex;gap:8px"><button class="primary" onclick="playStory('Nghề gác kèo ong U Minh')">Đọc câu chuyện</button><button class="ghost" onclick="openEntityByName('Nghề gác kèo ong U Minh')">Hồ sơ</button></div></div></article>
+
+<div class="map-tools">
+  <button class="tool-btn" id="trailBtn" onclick="toggleTrails()">Trails</button>
+  <button class="tool-btn" onclick="openPassport()">Passport <span id="savedCount">0</span></button>
+  <button class="tool-btn" onclick="requestNearby()">Near me</button>
+</div>
+<div class="trail-panel" id="trailPanel">
+  <div class="trail-head">
+    <div class="eyebrow">CURATED ROUTES</div>
+    <h3>Cultural Trails</h3>
+    <div class="muted" style="font-size:11px">Chọn một tuyến để xem các điểm được nối trực tiếp trên bản đồ.</div>
+  </div>
+  <div id="trailList"></div>
+  <div class="geo-note">Near me chỉ xin vị trí khi bạn bấm nút; app không tự theo dõi vị trí.</div>
+</div>
+
+</main></div>
+
+<div class="drawer" id="drawer"><div class="drawer-hero" id="drawerHero"><button class="close" onclick="closeDrawer()">×</button><div class="hero-label"><small id="drawerType"></small><h2 id="drawerName"></h2></div></div><div class="drawer-body" id="drawerBody"><div id="detailSpecific"></div><div class="meta" id="drawerMeta"></div><div class="lead" id="drawerLead"></div><div id="drawerActions"></div><div class="section"><h4>Liên kết văn hóa</h4><div id="drawerRelations"></div></div><div class="section"><h4>Nguồn & mức xác minh</h4><div class="source" id="drawerSource"></div></div></div></div>
+
+
+<div class="passport-drawer" id="passportDrawer">
+  <div class="passport-head">
+    <div class="top"><div class="kicker" style="margin-top:0">PERSONAL ARCHIVE</div><button class="close" onclick="closePassport()">×</button></div>
+    <h2>My Cultural Passport</h2>
+    <div class="muted">Những nơi, nghề và câu chuyện bạn đã lưu lại.</div>
+  </div>
+  <div class="passport-body">
+    <div class="passport-stat"><span>Đã lưu</span><b id="passportTotal">0</b></div>
+    <div class="passport-stat"><span>Vùng</span><b id="passportRegions">0</b></div>
+    <div class="passport-stat"><span>Nhóm nội dung</span><b id="passportCats">0</b></div>
+    <div class="section"><h4>Saved entries</h4><div id="savedList"></div></div>
+  </div>
+</div>
+
+<div class="story-modal" id="storyModal"><div class="story-player"><div class="player-img" id="playerImg"><button class="player-close" onclick="closeStory()">×</button></div><div class="player-body"><div class="progress" id="progress"></div><div class="kicker" id="storyEyebrow" style="margin-top:0"></div><h2 id="storyTitle"></h2><p id="storyText"></p><div class="controls"><button class="ghost" onclick="prevStory()">← Trước</button><button class="primary" onclick="nextStory()" id="nextBtn">Tiếp tục →</button></div></div></div></div>
+<nav class="mobile-nav">
+<button onclick="focusMekong()">MAP</button>
+<button onclick="toggleTrails()">TRAILS</button>
+<button onclick="openPassport()">PASSPORT</button>
+<button onclick="requestNearby()">NEARBY</button>
+</nav>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+/* --- v0.3.1 interactions --- */
+const trails = [
+  {
+    id:"khmer-south",
+    title:"Khmer South",
+    subtitle:"Chữ · âm nhạc · sân khấu · lễ hội",
+    stops:[
+      "Tri thức và kỹ thuật viết chữ trên lá Buông",
+      "Nhạc Ngũ âm Khmer",
+      "Nghệ thuật Rô-băm Sóc Trăng",
+      "Lễ hội đua ghe Ngo",
+      "Chầm riêng Chà Pây"
+    ]
+  },
+  {
+    id:"river-market",
+    title:"Life on the River",
+    subtitle:"Chợ nổi · ghe · âm nhạc · nhà ở",
+    stops:[
+      "Chợ nổi Cái Răng",
+      "Cây bẹo",
+      "Ghe thương hồ",
+      "Đờn ca tài tử Nam Bộ",
+      "Nhà cổ Bình Thủy"
+    ]
+  },
+  {
+    id:"deep-south",
+    title:"Forest to Coast",
+    subtitle:"U Minh · mật ong · muối · tín ngưỡng biển",
+    stops:[
+      "Nghề gác kèo ong U Minh",
+      "Mật ong U Minh",
+      "Nghề làm muối Bạc Liêu",
+      "Lễ hội Nghinh Ông Sông Đốc"
+    ]
+  }
+];
+
+let trailLayer = null;
+function toggleTrails(){
+  const p=document.getElementById('trailPanel'), b=document.getElementById('trailBtn');
+  p.classList.toggle('open'); b.classList.toggle('active',p.classList.contains('open'));
+}
+function renderTrailList(){
+  document.getElementById('trailList').innerHTML=trails.map(t=>`
+    <button class="trail-item" onclick="showTrail('${t.id}')">
+      <strong>${t.title}</strong>
+      <small>${t.subtitle} · ${t.stops.length} stops</small>
+    </button>`).join('');
+}
+renderTrailList();
+
+function getEntityByName(name){ return entities.find(e=>e.name===name); }
+
+function showTrail(id){
+  const t=trails.find(x=>x.id===id); if(!t)return;
+  const panel=document.getElementById('trailPanel');
+  panel.innerHTML=`<div class="trail-head"><div class="eyebrow">CULTURAL TRAIL</div><h3>${t.title}</h3><div class="muted" style="font-size:11px">${t.subtitle}</div></div>
+    <div style="padding:0 14px">${t.stops.map((name,i)=>{
+      const e=getEntityByName(name);
+      return `<div class="trail-stop"><div class="n">${String(i+1).padStart(2,'0')}</div><div><button onclick="${e?`openEntity('${e.entity_id}')`:""}">${name}</button><div style="font-size:9px;color:#777;margin-top:3px">${e?`${e.entity_type} · ${e.legacy_province}`:"Đang bổ sung tọa độ"}</div></div></div>`
+    }).join('')}</div>
+    <div style="padding:12px 14px;display:flex;gap:8px"><button class="tool-btn" onclick="renderTrailList();document.getElementById('trailPanel').innerHTML='<div class=&quot;trail-head&quot;><div class=&quot;eyebrow&quot;>CURATED ROUTES</div><h3>Cultural Trails</h3></div><div id=&quot;trailList&quot;></div>';renderTrailList()">← All trails</button></div>`;
+
+  if(trailLayer && map){ map.removeLayer(trailLayer); trailLayer=null; }
+  if(map && window.L){
+    const pts=t.stops.map(getEntityByName).filter(e=>e && e.lat).map(e=>[e.lat,e.lng]);
+    if(pts.length>=2){
+      trailLayer=L.polyline(pts,{color:'#111713',weight:2,opacity:.8,dashArray:'5 7'}).addTo(map);
+      pts.forEach((p,i)=>{
+        L.circleMarker(p,{radius:9,color:'#111713',weight:1,fillColor:'#f4f1ea',fillOpacity:1})
+         .bindTooltip(String(i+1),{permanent:true,direction:'center',className:'trail-number'}).addTo(trailLayer);
+      });
+      map.fitBounds(trailLayer.getBounds(),{padding:[70,70]});
+    }
+  }
+}
+
+const savedKey='vietCulturePassportV031';
+function readSaved(){ try{return JSON.parse(localStorage.getItem(savedKey)||'[]')}catch(e){return[]} }
+function writeSaved(arr){ localStorage.setItem(savedKey,JSON.stringify(arr)); refreshPassport() }
+function toggleSave(id){
+  let arr=readSaved();
+  arr=arr.includes(id)?arr.filter(x=>x!==id):[id,...arr];
+  writeSaved(arr);
+  if(byId[id]) openEntity(id);
+}
+function refreshPassport(){
+  const arr=readSaved();
+  const es=arr.map(id=>byId[id]).filter(Boolean);
+  document.getElementById('savedCount').textContent=arr.length;
+  document.getElementById('passportTotal').textContent=arr.length;
+  document.getElementById('passportRegions').textContent=new Set(es.map(e=>e.legacy_province).filter(Boolean)).size;
+  document.getElementById('passportCats').textContent=new Set(es.map(e=>e.category).filter(Boolean)).size;
+  document.getElementById('savedList').innerHTML=es.length?es.map(e=>`
+    <div class="saved-item"><button onclick="closePassport();openEntity('${e.entity_id}')"><strong>${e.name}</strong><small>${e.category} · ${e.legacy_province}</small></button></div>`).join(''):
+    '<div class="muted" style="font-size:12px;padding-top:14px">Chưa lưu mục nào.</div>';
+}
+function openPassport(){ refreshPassport(); document.getElementById('passportDrawer').classList.add('open') }
+function closePassport(){ document.getElementById('passportDrawer').classList.remove('open') }
+refreshPassport();
+
+function requestNearby(){
+  if(!navigator.geolocation){ alert('Trình duyệt này không hỗ trợ định vị.'); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    if(!map)return;
+    const p=[pos.coords.latitude,pos.coords.longitude];
+    map.flyTo(p,12,{duration:1.2});
+    if(window.L){
+      L.circleMarker(p,{radius:6,color:'#111713',weight:2,fillColor:'#f4f1ea',fillOpacity:1}).addTo(map).bindTooltip('Bạn đang ở đây').openTooltip();
+      const candidates=entities.filter(e=>e.lat).map(e=>{
+        const d=Math.hypot(e.lat-p[0],(e.lng-p[1])*Math.cos(p[0]*Math.PI/180));
+        return {e,d};
+      }).sort((a,b)=>a.d-b.d).slice(0,5);
+      document.getElementById('trailPanel').classList.add('open');
+      document.getElementById('trailBtn').classList.add('active');
+      document.getElementById('trailPanel').innerHTML=`<div class="trail-head"><div class="eyebrow">NEARBY</div><h3>Gần bạn</h3><div class="muted" style="font-size:11px">Các điểm gần nhất trong dataset hiện có.</div></div>
+      <div style="padding:0 14px">${candidates.map((x,i)=>`<div class="trail-stop"><div class="n">${String(i+1).padStart(2,'0')}</div><div><button onclick="openEntity('${x.e.entity_id}')">${x.e.name}</button><div style="font-size:9px;color:#777;margin-top:3px">${x.e.legacy_province}</div></div></div>`).join('')}</div>`;
+    }
+  },()=>alert('Không lấy được vị trí. Bạn có thể tiếp tục dùng map và search bình thường.'),{enableHighAccuracy:false,timeout:8000,maximumAge:60000});
+}
+
+/* patch entity drawer with save + rabbit-hole layer */
+const _openEntityV03 = openEntity;
+openEntity = function(id){
+  _openEntityV03(id);
+  const e=byId[id]; if(!e)return;
+  const saved=readSaved().includes(id);
+  const actions=document.getElementById('drawerActions');
+  const existing=actions.innerHTML;
+  actions.innerHTML=`<div class="drawer-actions">${existing}<button class="ghost save-btn ${saved?'saved':''}" onclick="toggleSave('${id}')">${saved?'Saved ✓':'Save to Passport'}</button></div>`;
+  const rr=relatedFor(id).slice(0,6);
+  let rabbit=document.getElementById('drawerRabbit');
+  if(!rabbit){
+    rabbit=document.createElement('div');rabbit.id='drawerRabbit';rabbit.className='rabbit';
+    document.querySelector('.drawer-body').appendChild(rabbit);
+  }
+  rabbit.innerHTML=`<h4>Đi tiếp từ đây</h4><div class="rabbit-grid">${rr.map(x=>{
+    const target=entities.find(z=>z.name===x.name);
+    return `<button class="rabbit-card" ${target?`onclick="openEntity('${target.entity_id}')"`:''}><small>${x.type.replaceAll('_',' ')}</small><strong>${x.name}</strong></button>`;
+  }).join('')}</div>`;
+}
+
+
+/* --- v0.3.2: Place / Story / Person have different information architecture --- */
+function detailKind(e){
+  const hay=((e.entity_type||'')+' '+(e.category||'')).toLowerCase();
+  if(hay.includes('nghệ nhân')||hay.includes('nhân vật')||hay.includes('người giữ')||hay.includes('tác giả')) return 'person';
+  if(hay.includes('truyện')||hay.includes('truyền thuyết')||hay.includes('tích')||hay.includes('câu chuyện')) return 'story';
+  return 'place';
+}
+function initials(name){
+  return (name||'').split(/\s+/).filter(Boolean).slice(-2).map(x=>x[0]).join('').toUpperCase();
+}
+function typeSpecificMarkup(e){
+  const kind=detailKind(e);
+  const body=document.getElementById('drawerBody');
+  body.classList.remove('place-sheet','story-sheet','person-sheet');
+  body.classList.add(kind+'-sheet');
+
+  if(kind==='person'){
+    return `<div class="detail-mode">PERSON / KNOWLEDGE HOLDER</div>
+      <div class="person-intro">
+        <div class="person-monogram">${initials(e.name)}</div>
+        <div class="person-meta">
+          <small>Gắn với</small>${e.community||'Đang bổ sung'}<br><br>
+          <small>Địa bàn</small>${e.legacy_province||'—'}<br><br>
+          <small>Vai trò trong atlas</small>${e.category||e.entity_type||'—'}
+        </div>
+      </div>
+      <div class="person-quote">Không chỉ ghi tên một con người; hồ sơ này cần cho thấy họ đang giữ, truyền hoặc thực hành tri thức nào.</div>
+      <div class="archive-strip"><h4>Archive fields</h4>
+        <div class="archive-item"><span>Voice</span><div>Audio/phỏng vấn trực tiếp — chưa bổ sung</div></div>
+        <div class="archive-item"><span>Practice</span><div>${e.category||'Đang xác minh'}</div></div>
+        <div class="archive-item"><span>Status</span><div>${e.record_status||'—'}</div></div>
+      </div>`;
+  }
+  if(kind==='story'){
+    return `<div class="detail-mode">STORY / ORAL TRADITION</div>
+      <div class="story-opening">${e.app_content_hook||'Một câu chuyện được đặt trong bối cảnh vùng đất và cộng đồng đã lưu truyền nó.'}</div>
+      <div class="story-path">
+        <div class="step"><span>01</span><div><b>ĐỌC</b><br><small>Nội dung kể và các dị bản.</small></div></div>
+        <div class="step"><span>02</span><div><b>BỐI CẢNH</b><br><small>Nơi chốn, cộng đồng và thực hành liên quan.</small></div></div>
+        <div class="step"><span>03</span><div><b>NGUỒN</b><br><small>Ấn bản, người kể hoặc tư liệu thực địa.</small></div></div>
+      </div>`;
+  }
+  return `<div class="detail-mode">PLACE / CULTURAL SITE</div>
+    <div class="place-facts">
+      <div class="place-fact"><small>Vùng</small><b>${e.legacy_province||'—'}</b></div>
+      <div class="place-fact"><small>Cộng đồng</small><b>${e.community||'—'}</b></div>
+      <div class="place-fact"><small>Loại</small><b>${e.category||e.entity_type||'—'}</b></div>
+      <div class="place-fact"><small>Tình trạng dữ liệu</small><b>${e.verification_grade||'—'}</b></div>
+    </div>`;
+}
+
+const _openEntityV031 = openEntity;
+openEntity = function(id){
+  _openEntityV031(id);
+  const e=byId[id]; if(!e)return;
+  const specific=document.getElementById('detailSpecific');
+  if(specific) specific.innerHTML=typeSpecificMarkup(e);
+
+  // Adjust hero treatment per detail type.
+  const kind=detailKind(e);
+  const hero=document.getElementById('drawerHero');
+  if(kind==='person'){
+    hero.style.height='210px';
+    if(!e.image) hero.style.backgroundImage='linear-gradient(135deg,#b9b3a7,#e1dbd0)';
+  } else if(kind==='story'){
+    hero.style.height='250px';
+  } else {
+    hero.style.height='320px';
+  }
+
+  // Re-label the core description so the template feels intentional.
+  const lead=document.getElementById('drawerLead');
+  if(kind==='person' && lead) lead.style.fontSize='16px';
+  if(kind==='story' && lead) lead.style.fontSize='20px';
+}
+
+</script>
+<script>
+const entities=[{"entity_id": "MK001", "name": "Đờn ca tài tử Nam Bộ", "entity_type": "Di sản phi vật thể", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ / ĐBSCL", "community": "Kinh và cộng đồng Nam Bộ", "category": "Âm nhạc", "verified_summary": "Nghệ thuật âm nhạc có gốc bác học và dân gian, gắn với đời sống trên đất và sông nước Nam Bộ; được UNESCO ghi danh năm 2013.", "period": "Thế kỷ XIX–nay", "heritage_status": "UNESCO Representative List", "app_content_hook": "Tạo tuyến nghe thử bài bản → nhạc cụ → nghệ nhân → không gian biểu diễn.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK002", "name": "Hò Cần Thơ", "entity_type": "Di sản phi vật thể", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Hai bờ sông Hậu và vùng Cần Thơ", "community": "Kinh", "category": "Dân ca", "verified_summary": "Một hình thức hò Nam Bộ mang sắc thái địa phương Cần Thơ, còn được gọi là hò sông Hậu.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Audio-first: nghe câu hò, giải thích hoàn cảnh lao động và cách đối đáp.", "source_id": "S03", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S03", "organization": "Cục Di sản văn hóa", "title": "Hò Cần Thơ", "url": "https://dsvh.gov.vn/ho-can-tho-3122", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK003", "name": "Văn hóa Chợ nổi Cái Răng", "entity_type": "Di sản phi vật thể", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Cái Răng", "community": "Cộng đồng thương hồ", "category": "Văn hóa sông nước", "verified_summary": "Không gian văn hóa hình thành từ hoạt động họp chợ trên sông, gắn với ghe xuồng, trao đổi nông sản và đời sống thương hồ.", "period": "Hơn 100 năm", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Story map: một buổi sáng của thương hồ, cây bẹo, ghe hàng và mạng lưới sông.", "source_id": "S04", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S04", "organization": "Bảo tàng TP Cần Thơ", "title": "Di sản văn hóa Chợ nổi Cái Răng", "url": "https://baotangtpcantho.cantho.gov.vn/article/di-san-van-hoa-cho-noi-cai-rang/1073.htm", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK004", "name": "Chợ nổi Cái Răng", "entity_type": "Địa điểm văn hóa", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Sông Cần Thơ, khu vực Cái Răng", "community": "Cộng đồng thương hồ", "category": "Chợ truyền thống", "verified_summary": "Chợ nổi nằm trên sông Cần Thơ, cách trung tâm khoảng 6 km; là không gian giao thương đường thủy nổi bật của vùng.", "period": "Hơn 100 năm", "heritage_status": "", "app_content_hook": "Điểm map chính để mở các story về thương hồ và văn hóa sông.", "source_id": "S04", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.0027, "lng": 105.75, "source": {"source_id": "S04", "organization": "Bảo tàng TP Cần Thơ", "title": "Di sản văn hóa Chợ nổi Cái Răng", "url": "https://baotangtpcantho.cantho.gov.vn/article/di-san-van-hoa-cho-noi-cai-rang/1073.htm", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK005", "name": "Cây bẹo", "entity_type": "Thực hành / vật dụng", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Chợ nổi Cái Răng", "community": "Cộng đồng thương hồ", "category": "Tập quán thương mại", "verified_summary": "Biểu tượng gắn với cách giới thiệu hàng hóa trên ghe ở chợ nổi; nên xác minh sâu hơn bằng tư liệu thực địa trước khi viết bài dài.", "period": "", "heritage_status": "", "app_content_hook": "Micro-story 60 giây: nhìn cây bẹo để đoán ghe bán gì.", "source_id": "S04", "verification_grade": "B", "record_status": "NEEDS_DEEPER_VERIFY", "notes": "Cần phỏng vấn thương hồ để ghi nhận cách dùng hiện nay.", "lat": null, "lng": null, "source": {"source_id": "S04", "organization": "Bảo tàng TP Cần Thơ", "title": "Di sản văn hóa Chợ nổi Cái Răng", "url": "https://baotangtpcantho.cantho.gov.vn/article/di-san-van-hoa-cho-noi-cai-rang/1073.htm", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK006", "name": "Ghe thương hồ", "entity_type": "Vật thể / phương tiện", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Chợ nổi Cái Răng", "community": "Cộng đồng thương hồ", "category": "Văn hóa sông nước", "verified_summary": "Ghe, xuồng là phương tiện mua bán và di chuyển cốt lõi tạo nên hình thức họp chợ trên sông.", "period": "", "heritage_status": "", "app_content_hook": "Profile một chiếc ghe: chủ ghe, tuyến hàng, hàng hóa, nhịp sống.", "source_id": "S04", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S04", "organization": "Bảo tàng TP Cần Thơ", "title": "Di sản văn hóa Chợ nổi Cái Răng", "url": "https://baotangtpcantho.cantho.gov.vn/article/di-san-van-hoa-cho-noi-cai-rang/1073.htm", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK007", "name": "Nhà cổ Bình Thủy", "entity_type": "Địa điểm văn hóa", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Bình Thủy", "community": "Gia đình họ Dương / cư dân Cần Thơ", "category": "Kiến trúc", "verified_summary": "Di tích kiến trúc nghệ thuật quốc gia, khởi dựng từ năm 1870; kết hợp kiến trúc phương Tây với nền văn hóa phương Đông.", "period": "Từ 1870", "heritage_status": "Di tích kiến trúc nghệ thuật quốc gia", "app_content_hook": "AR/story: bóc tách từng lớp kiến trúc Đông–Tây.", "source_id": "S05", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.0614, "lng": 105.7332, "source": {"source_id": "S05", "organization": "Cổng TTĐT TP Cần Thơ", "title": "Giá trị nghệ thuật kiến trúc Nhà cổ Bình Thủy", "url": "https://www.cantho.gov.vn/wps/portal/home/du-khach/chi-tiet/ve-can-tho/van-hoa-tin-nguong/hieu%2Bthem%2Bve%2Bgia%2Btri%2Bnghe%2Bthuat%2Bkien%2Btruc%2Bcua%2Bnha%2Bco%2Bbinh%2Bthuy", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK008", "name": "Dương Văn Vị", "entity_type": "Nhân vật lịch sử", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Bình Thủy", "community": "Kinh", "category": "Nhân vật", "verified_summary": "Người đặt nền móng ban đầu cho Nhà cổ Bình Thủy vào nửa sau thế kỷ XIX.", "period": "Thế kỷ XIX", "heritage_status": "", "app_content_hook": "Liên kết nhân vật → ngôi nhà → kinh tế lúa gạo, muối ở Cần Thơ xưa.", "source_id": "S05", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S05", "organization": "Cổng TTĐT TP Cần Thơ", "title": "Giá trị nghệ thuật kiến trúc Nhà cổ Bình Thủy", "url": "https://www.cantho.gov.vn/wps/portal/home/du-khach/chi-tiet/ve-can-tho/van-hoa-tin-nguong/hieu%2Bthem%2Bve%2Bgia%2Btri%2Bnghe%2Bthuat%2Bkien%2Btruc%2Bcua%2Bnha%2Bco%2Bbinh%2Bthuy", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK009", "name": "Sông Hậu trong văn hóa Nam Bộ", "entity_type": "Không gian văn hóa", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Trục sông Hậu", "community": "Nhiều cộng đồng", "category": "Cảnh quan văn hóa", "verified_summary": "Sông Hậu là không gian lan tỏa của hò Cần Thơ và nhiều thực hành sông nước; đây là entity tổng hợp cần biên tập thêm.", "period": "", "heritage_status": "", "app_content_hook": "Map layer theo dòng sông thay vì ranh giới tỉnh.", "source_id": "S03", "verification_grade": "B", "record_status": "CURATED_SYNTHESIS", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S03", "organization": "Cục Di sản văn hóa", "title": "Hò Cần Thơ", "url": "https://dsvh.gov.vn/ho-can-tho-3122", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK010", "name": "Không gian biểu diễn đờn ca tài tử", "entity_type": "Không gian văn hóa", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ / ĐBSCL", "community": "Người thực hành ĐCTT", "category": "Âm nhạc", "verified_summary": "Đờn ca tài tử được thực hành trong lễ hội, giỗ, sinh hoạt và các dịp cộng đồng; không gian biểu diễn mang tính gần gũi, tương tác.", "period": "", "heritage_status": "", "app_content_hook": "Cho người dùng tìm nơi có thể nghe ĐCTT thay vì chỉ đọc lịch sử.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK011", "name": "Làng hoa Sa Đéc", "entity_type": "Địa điểm văn hóa", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Sa Đéc", "community": "Cộng đồng trồng hoa", "category": "Làng nghề", "verified_summary": "Làng hoa hình thành từ cuối thế kỷ XIX, phát triển thành vùng sản xuất hoa kiểng lớn với lịch sử hơn một thế kỷ.", "period": "Cuối thế kỷ XIX–nay", "heritage_status": "", "app_content_hook": "Seasonal map theo mùa hoa và hộ trồng.", "source_id": "S07", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.31, "lng": 105.767, "source": {"source_id": "S07", "organization": "Du lịch Đồng Tháp", "title": "Làng hoa Sa Đéc", "url": "https://dulich.dongthap.gov.vn/vi/langhoa", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK012", "name": "Nghề trồng hoa kiểng Sa Đéc", "entity_type": "Di sản phi vật thể", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Sa Đéc", "community": "Người trồng hoa Sa Đéc", "category": "Nghề truyền thống", "verified_summary": "Tri thức dân gian và nghề thủ công truyền thống của cộng đồng trồng hoa Sa Đéc; được đưa vào Danh mục quốc gia cuối năm 2025.", "period": "Hơn 100 năm", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Tạo hồ sơ người trồng + giống hoa + kỹ thuật + mùa vụ.", "source_id": "S06", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S06", "organization": "Cổng TTĐT tỉnh Đồng Tháp", "title": "Nghề trồng hoa kiểng Sa Đéc - Di sản văn hóa phi vật thể quốc gia", "url": "https://dongthap.gov.vn/tin-tuc/chi-tiet?id=6821760", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK013", "name": "Kỹ thuật trồng hoa trên giàn", "entity_type": "Tri thức / kỹ thuật", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Sa Đéc", "community": "Người trồng hoa Sa Đéc", "category": "Nông nghiệp truyền thống", "verified_summary": "Cách trồng hoa trên giàn là nét đặc trưng của Sa Đéc, hình thành từ sự thích nghi với điều kiện sông nước và canh tác địa phương.", "period": "", "heritage_status": "", "app_content_hook": "Explainer bằng hình: vì sao phải kê giàn trên mặt nước.", "source_id": "S29", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S29", "organization": "Cổng TTĐT tỉnh Đồng Tháp", "title": "Trồng hoa trên giàn – nét riêng Làng hoa Sa Đéc", "url": "https://dongthap.gov.vn/tin-tuc/chi-tiet?id=5907452", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK014", "name": "Tân Quy Đông", "entity_type": "Địa danh văn hóa", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Sa Đéc / khu vực Tân Quy Đông", "community": "Cộng đồng trồng hoa", "category": "Làng nghề", "verified_summary": "Được xem là cái nôi của nghề trồng hoa kiểng Sa Đéc trong tư liệu du lịch địa phương.", "period": "", "heritage_status": "", "app_content_hook": "Điểm bắt đầu cho tuyến đi bộ/xe đạp làng hoa.", "source_id": "S07", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S07", "organization": "Du lịch Đồng Tháp", "title": "Làng hoa Sa Đéc", "url": "https://dulich.dongthap.gov.vn/vi/langhoa", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK015", "name": "Khu di tích Nguyễn Sinh Sắc", "entity_type": "Địa điểm văn hóa", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Cao Lãnh", "community": "Kinh", "category": "Lịch sử", "verified_summary": "Quần thể tưởng niệm cụ Phó bảng Nguyễn Sinh Sắc; được công nhận di tích quốc gia năm 1992 và phát triển thêm không gian tái hiện làng Hòa An.", "period": "1975–nay", "heritage_status": "Di tích lịch sử", "app_content_hook": "Storyline nhân vật → Hòa An xưa → nghề và nếp sống Nam Bộ.", "source_id": "S08", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.4568, "lng": 105.6332, "source": {"source_id": "S08", "organization": "Du lịch Đồng Tháp", "title": "Khu di tích Nguyễn Sinh Sắc", "url": "https://dulich.dongthap.gov.vn/vi/ditichnguyensinhsac", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK016", "name": "Nguyễn Sinh Sắc", "entity_type": "Nhân vật lịch sử", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Cao Lãnh / Hòa An", "community": "Kinh", "category": "Nhân vật", "verified_summary": "Nhà nho yêu nước, thầy thuốc; từng sống và hoạt động tại Hòa An giai đoạn 1927–1929 theo tư liệu khu di tích.", "period": "1862–1929", "heritage_status": "", "app_content_hook": "Biography map theo những nơi ông từng sống ở Nam Bộ.", "source_id": "S08", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S08", "organization": "Du lịch Đồng Tháp", "title": "Khu di tích Nguyễn Sinh Sắc", "url": "https://dulich.dongthap.gov.vn/vi/ditichnguyensinhsac", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK017", "name": "Làng Hòa An xưa", "entity_type": "Không gian tái hiện", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Khu di tích Nguyễn Sinh Sắc", "community": "Kinh", "category": "Đời sống Nam Bộ", "verified_summary": "Không gian phục dựng trong khu di tích nhằm tái hiện nếp sống, kiểu nhà và một số nghề truyền thống của làng Nam Bộ.", "period": "", "heritage_status": "", "app_content_hook": "Interactive ‘một ngày ở làng Nam Bộ xưa’.", "source_id": "S08", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S08", "organization": "Du lịch Đồng Tháp", "title": "Khu di tích Nguyễn Sinh Sắc", "url": "https://dulich.dongthap.gov.vn/vi/ditichnguyensinhsac", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK018", "name": "Nhà bát dần Nam Bộ", "entity_type": "Loại hình kiến trúc", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Không gian làng Hòa An tái hiện", "community": "Kinh", "category": "Kiến trúc dân gian", "verified_summary": "Một kiểu nhà truyền thống Nam Bộ được giới thiệu trong không gian tái hiện làng Hòa An.", "period": "", "heritage_status": "", "app_content_hook": "Glossary kiến trúc dân gian.", "source_id": "S08", "verification_grade": "B", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S08", "organization": "Du lịch Đồng Tháp", "title": "Khu di tích Nguyễn Sinh Sắc", "url": "https://dulich.dongthap.gov.vn/vi/ditichnguyensinhsac", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK019", "name": "Nhà chữ Đinh Nam Bộ", "entity_type": "Loại hình kiến trúc", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Không gian làng Hòa An tái hiện", "community": "Kinh", "category": "Kiến trúc dân gian", "verified_summary": "Một kiểu bố cục nhà truyền thống Nam Bộ được giới thiệu tại khu tái hiện làng Hòa An.", "period": "", "heritage_status": "", "app_content_hook": "So sánh sơ đồ mặt bằng với nhà hiện đại.", "source_id": "S08", "verification_grade": "B", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S08", "organization": "Du lịch Đồng Tháp", "title": "Khu di tích Nguyễn Sinh Sắc", "url": "https://dulich.dongthap.gov.vn/vi/ditichnguyensinhsac", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK020", "name": "Nghề xay lúa giã gạo Nam Bộ", "entity_type": "Thực hành nghề", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Không gian làng Hòa An tái hiện", "community": "Kinh", "category": "Đời sống nông nghiệp", "verified_summary": "Được tái hiện như một phần đời sống và làng nghề truyền thống Nam Bộ tại khu di tích Nguyễn Sinh Sắc.", "period": "", "heritage_status": "", "app_content_hook": "Video thao tác + tên dụng cụ + âm thanh.", "source_id": "S08", "verification_grade": "B", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S08", "organization": "Du lịch Đồng Tháp", "title": "Khu di tích Nguyễn Sinh Sắc", "url": "https://dulich.dongthap.gov.vn/vi/ditichnguyensinhsac", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK021", "name": "Văn hóa Óc Eo", "entity_type": "Nền văn hóa khảo cổ", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Đồng bằng Nam Bộ", "community": "Cư dân cổ Nam Bộ", "category": "Khảo cổ học", "verified_summary": "Nền văn hóa phát triển mạnh ở đồng bằng Nam Bộ trong khoảng 10 thế kỷ đầu Công nguyên.", "period": "Khoảng thế kỷ I–X", "heritage_status": "", "app_content_hook": "Timeline khảo cổ, thương mại và tôn giáo.", "source_id": "S09", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S09", "organization": "Cục Di sản văn hóa", "title": "Di tích khảo cổ và kiến trúc nghệ thuật Óc Eo - Ba Thê", "url": "https://dsvh.gov.vn/di-tich-khao-co-va-kien-truc-nghe-thuat-oc-eo-ba-the-2965", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK022", "name": "Khu di tích Óc Eo – Ba Thê", "entity_type": "Địa điểm văn hóa", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Óc Eo / Ba Thê", "community": "Cư dân cổ Nam Bộ", "category": "Khảo cổ học", "verified_summary": "Quần thể khảo cổ lớn gồm khu núi Ba Thê, đô thị cổ Óc Eo và các điểm vệ tinh; là di tích quốc gia đặc biệt.", "period": "Cổ đại", "heritage_status": "Di tích quốc gia đặc biệt", "app_content_hook": "Map nhiều lớp: kiến trúc, kênh cổ, hiện vật, tuyến giao thương.", "source_id": "S10", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.257, "lng": 105.154, "source": {"source_id": "S10", "organization": "Ban QL Di tích Văn hóa Óc Eo tỉnh An Giang", "title": "Di tích khảo cổ dưới lòng đất Óc Eo – Ba Thê", "url": "https://vanhoaoceo.angiang.gov.vn/di-tich-khao-co-duoi-long-dat-oc-eo-ba", "source_level": "Local official", "default_grade": "A"}, "image": "https://imagevietnam.vnanet.vn/MediaUpload/Org/2026/01/20/vna-potal-khu-di-tich-khao-co-oc-eo-ba-the-hoi-tu-nhung-gia-tri-noi-bat-de-tro-thanh-di-san-van-hoa-the-gioi-854087520-13-1-14.jpg"}, {"entity_id": "MK023", "name": "Núi Ba Thê – khu A", "entity_type": "Thành phần di tích", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Óc Eo", "community": "Cư dân cổ Nam Bộ", "category": "Khảo cổ học", "verified_summary": "Không gian thiêng và hệ thống kiến trúc tôn giáo trong cấu trúc khu di tích Óc Eo – Ba Thê.", "period": "Cổ đại", "heritage_status": "", "app_content_hook": "Layer ‘sacred landscape’.", "source_id": "S10", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S10", "organization": "Ban QL Di tích Văn hóa Óc Eo tỉnh An Giang", "title": "Di tích khảo cổ dưới lòng đất Óc Eo – Ba Thê", "url": "https://vanhoaoceo.angiang.gov.vn/di-tich-khao-co-duoi-long-dat-oc-eo-ba", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK024", "name": "Đô thị cổ Óc Eo – khu B", "entity_type": "Thành phần di tích", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Cánh đồng Óc Eo", "community": "Cư dân cổ Nam Bộ", "category": "Khảo cổ học", "verified_summary": "Khu cư trú – kiến trúc – kênh đào, được xác định là thành phần trung tâm của quần thể Óc Eo – Ba Thê.", "period": "Cổ đại", "heritage_status": "", "app_content_hook": "Dựng sơ đồ đô thị cổ từ dữ liệu khảo cổ.", "source_id": "S10", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S10", "organization": "Ban QL Di tích Văn hóa Óc Eo tỉnh An Giang", "title": "Di tích khảo cổ dưới lòng đất Óc Eo – Ba Thê", "url": "https://vanhoaoceo.angiang.gov.vn/di-tich-khao-co-duoi-long-dat-oc-eo-ba", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK025", "name": "Giồng Xoài – khu C", "entity_type": "Thành phần di tích", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Khu vực Óc Eo – Ba Thê", "community": "Cư dân cổ Nam Bộ", "category": "Khảo cổ học", "verified_summary": "Một địa điểm vệ tinh quan trọng trong cấu trúc cảnh quan giao thương của quần thể Óc Eo – Ba Thê.", "period": "Cổ đại", "heritage_status": "", "app_content_hook": "Node kết nối chủ đề giao thương.", "source_id": "S10", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S10", "organization": "Ban QL Di tích Văn hóa Óc Eo tỉnh An Giang", "title": "Di tích khảo cổ dưới lòng đất Óc Eo – Ba Thê", "url": "https://vanhoaoceo.angiang.gov.vn/di-tich-khao-co-duoi-long-dat-oc-eo-ba", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK026", "name": "Nền Chùa – khu D", "entity_type": "Thành phần di tích", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Khu vực Óc Eo – Ba Thê", "community": "Cư dân cổ Nam Bộ", "category": "Khảo cổ học", "verified_summary": "Một địa điểm vệ tinh quan trọng trong cấu trúc cảnh quan giao thương của quần thể Óc Eo – Ba Thê.", "period": "Cổ đại", "heritage_status": "", "app_content_hook": "Node kết nối khảo cổ và tôn giáo.", "source_id": "S10", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S10", "organization": "Ban QL Di tích Văn hóa Óc Eo tỉnh An Giang", "title": "Di tích khảo cổ dưới lòng đất Óc Eo – Ba Thê", "url": "https://vanhoaoceo.angiang.gov.vn/di-tich-khao-co-duoi-long-dat-oc-eo-ba", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK027", "name": "Linh Sơn tự", "entity_type": "Địa điểm văn hóa", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Ba Thê / Óc Eo", "community": "Cộng đồng địa phương", "category": "Tôn giáo / khảo cổ", "verified_summary": "Ngôi chùa được xây trên nền móng của một công trình kiến trúc cổ trong khu vực Ba Thê.", "period": "", "heritage_status": "", "app_content_hook": "Story về lớp di sản chồng lên nhau qua thời gian.", "source_id": "S09", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S09", "organization": "Cục Di sản văn hóa", "title": "Di tích khảo cổ và kiến trúc nghệ thuật Óc Eo - Ba Thê", "url": "https://dsvh.gov.vn/di-tich-khao-co-va-kien-truc-nghe-thuat-oc-eo-ba-the-2965", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK028", "name": "Hệ thống kênh cổ Óc Eo", "entity_type": "Dấu tích khảo cổ", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Cánh đồng Óc Eo", "community": "Cư dân cổ Nam Bộ", "category": "Hạ tầng cổ", "verified_summary": "Các dấu tích kênh cổ là một phần quan trọng trong nhận diện không gian cư trú và giao thương Óc Eo.", "period": "Cổ đại", "heritage_status": "", "app_content_hook": "Overlay kênh cổ lên bản đồ hiện đại.", "source_id": "S09", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S09", "organization": "Cục Di sản văn hóa", "title": "Di tích khảo cổ và kiến trúc nghệ thuật Óc Eo - Ba Thê", "url": "https://dsvh.gov.vn/di-tich-khao-co-va-kien-truc-nghe-thuat-oc-eo-ba-the-2965", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK029", "name": "Tượng thần Surya Óc Eo", "entity_type": "Bảo vật / hiện vật", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Nhà trưng bày Văn hóa Óc Eo", "community": "Cư dân cổ Nam Bộ", "category": "Hiện vật", "verified_summary": "Một trong các bảo vật quốc gia được Ban Quản lý Di tích Văn hóa Óc Eo giới thiệu trong hệ thống trưng bày.", "period": "Cổ đại", "heritage_status": "Bảo vật quốc gia", "app_content_hook": "3D object card nếu có ảnh/quyền sử dụng.", "source_id": "S10", "verification_grade": "B", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S10", "organization": "Ban QL Di tích Văn hóa Óc Eo tỉnh An Giang", "title": "Di tích khảo cổ dưới lòng đất Óc Eo – Ba Thê", "url": "https://vanhoaoceo.angiang.gov.vn/di-tich-khao-co-duoi-long-dat-oc-eo-ba", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK030", "name": "Tượng thần Vishnu Óc Eo", "entity_type": "Bảo vật / hiện vật", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Nhà trưng bày Văn hóa Óc Eo", "community": "Cư dân cổ Nam Bộ", "category": "Hiện vật", "verified_summary": "Một bảo vật quốc gia thuộc hệ thống hiện vật được giới thiệu bởi Ban Quản lý Di tích Văn hóa Óc Eo.", "period": "Cổ đại", "heritage_status": "Bảo vật quốc gia", "app_content_hook": "Liên kết chủ đề Hindu giáo và giao lưu văn hóa.", "source_id": "S10", "verification_grade": "B", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S10", "organization": "Ban QL Di tích Văn hóa Óc Eo tỉnh An Giang", "title": "Di tích khảo cổ dưới lòng đất Óc Eo – Ba Thê", "url": "https://vanhoaoceo.angiang.gov.vn/di-tich-khao-co-duoi-long-dat-oc-eo-ba", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK031", "name": "Tượng Phật Bình Hòa", "entity_type": "Bảo vật / hiện vật", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Hệ thống trưng bày Văn hóa Óc Eo", "community": "Cư dân cổ Nam Bộ", "category": "Hiện vật", "verified_summary": "Một trong những bảo vật quốc gia được giới thiệu trong hệ thống tư liệu của Ban Quản lý Di tích Văn hóa Óc Eo.", "period": "Cổ đại", "heritage_status": "Bảo vật quốc gia", "app_content_hook": "Liên kết với Phật giáo trong văn hóa Óc Eo.", "source_id": "S10", "verification_grade": "B", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S10", "organization": "Ban QL Di tích Văn hóa Óc Eo tỉnh An Giang", "title": "Di tích khảo cổ dưới lòng đất Óc Eo – Ba Thê", "url": "https://vanhoaoceo.angiang.gov.vn/di-tich-khao-co-duoi-long-dat-oc-eo-ba", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK032", "name": "Tượng Phật Sa Đéc", "entity_type": "Bảo vật / hiện vật", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Nguồn gốc Sa Đéc / hệ thống giới thiệu Óc Eo", "community": "Cư dân cổ Nam Bộ", "category": "Hiện vật", "verified_summary": "Bảo vật quốc gia được Ban Quản lý Di tích Văn hóa Óc Eo giới thiệu trong chuyên mục hiện vật.", "period": "Cổ đại", "heritage_status": "Bảo vật quốc gia", "app_content_hook": "Cross-province link: Sa Đéc ↔ mạng lưới văn hóa Óc Eo.", "source_id": "S10", "verification_grade": "B", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S10", "organization": "Ban QL Di tích Văn hóa Óc Eo tỉnh An Giang", "title": "Di tích khảo cổ dưới lòng đất Óc Eo – Ba Thê", "url": "https://vanhoaoceo.angiang.gov.vn/di-tich-khao-co-duoi-long-dat-oc-eo-ba", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK033", "name": "Lễ hội Vía Bà Chúa Xứ Núi Sam", "entity_type": "Di sản phi vật thể", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Núi Sam", "community": "Cộng đồng tín ngưỡng Nam Bộ", "category": "Tín ngưỡng / lễ hội", "verified_summary": "Lễ hội diễn ra hằng năm từ ngày 22–27 tháng Tư âm lịch; UNESCO ghi danh vào Danh sách đại diện năm 2024.", "period": "Hằng năm", "heritage_status": "UNESCO Representative List", "app_content_hook": "Festival mode: lịch nghi lễ + giải thích từng nghi thức.", "source_id": "S11", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.6886, "lng": 105.0795, "source": {"source_id": "S11", "organization": "Cổng TTĐT tỉnh An Giang", "title": "Lễ Vía Bà Chúa Xứ Núi Sam năm 2026", "url": "https://angiang.gov.vn/vi/an-giang-chuc-khai-hoi-le-ba-chua-xu-nui-sam-nam-2026", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK034", "name": "Lễ tắm Bà (Mộc Dục)", "entity_type": "Nghi lễ", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Miếu Bà Chúa Xứ Núi Sam", "community": "Cộng đồng tín ngưỡng Nam Bộ", "category": "Nghi lễ", "verified_summary": "Một nghi lễ quan trọng trong mùa Vía Bà Chúa Xứ Núi Sam.", "period": "Hằng năm", "heritage_status": "", "app_content_hook": "Story card theo trình tự nghi lễ.", "source_id": "S11", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S11", "organization": "Cổng TTĐT tỉnh An Giang", "title": "Lễ Vía Bà Chúa Xứ Núi Sam năm 2026", "url": "https://angiang.gov.vn/vi/an-giang-chuc-khai-hoi-le-ba-chua-xu-nui-sam-nam-2026", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK035", "name": "Lễ rước tượng Bà Chúa Xứ", "entity_type": "Nghi lễ", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Núi Sam", "community": "Cộng đồng tín ngưỡng Nam Bộ", "category": "Nghi lễ", "verified_summary": "Nghi thức rước tượng được phục hiện trong khuôn khổ Lễ hội Vía Bà Chúa Xứ Núi Sam.", "period": "Hằng năm", "heritage_status": "", "app_content_hook": "Map tuyến rước.", "source_id": "S11", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S11", "organization": "Cổng TTĐT tỉnh An Giang", "title": "Lễ Vía Bà Chúa Xứ Núi Sam năm 2026", "url": "https://angiang.gov.vn/vi/an-giang-chuc-khai-hoi-le-ba-chua-xu-nui-sam-nam-2026", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK036", "name": "Tri thức và kỹ thuật viết chữ trên lá Buông", "entity_type": "Di sản phi vật thể", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Tri Tôn – Tịnh Biên (địa danh trước sắp xếp)", "community": "Khmer", "category": "Tri thức dân gian", "verified_summary": "Tri thức và kỹ thuật viết chữ trên lá Buông của người Khmer được đưa vào Danh mục DSVHPVT quốc gia năm 2017.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Digitize manuscript: ảnh trang lá + phiên âm + dịch + audio.", "source_id": "S12", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.413, "lng": 104.999, "source": {"source_id": "S12", "organization": "Cục Di sản văn hóa", "title": "Công bố Danh mục DSVHPVT quốc gia đợt XVII", "url": "https://dsvh.gov.vn/cong-bo-danh-muc-di-san-van-hoa-phi-vat-the-quoc-gia-dot-xvii-1300", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK037", "name": "Lá Buông", "entity_type": "Vật liệu văn hóa", "legacy_province": "An Giang", "current_admin_2026": "An Giang", "location_text": "Vùng Khmer Bảy Núi", "community": "Khmer", "category": "Chữ viết / vật liệu", "verified_summary": "Vật liệu gắn với kỹ thuật ghi chép chữ truyền thống của người Khmer; cần nghiên cứu sâu thêm về quy trình chuẩn bị lá.", "period": "", "heritage_status": "", "app_content_hook": "Object story từ cây → xử lý lá → văn bản.", "source_id": "S12", "verification_grade": "B", "record_status": "NEEDS_DEEPER_VERIFY", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S12", "organization": "Cục Di sản văn hóa", "title": "Công bố Danh mục DSVHPVT quốc gia đợt XVII", "url": "https://dsvh.gov.vn/cong-bo-danh-muc-di-san-van-hoa-phi-vat-the-quoc-gia-dot-xvii-1300", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK038", "name": "Cộng đồng Khmer Nam Bộ", "entity_type": "Cộng đồng", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "ĐBSCL", "community": "Khmer", "category": "Cộng đồng", "verified_summary": "Cộng đồng giữ nhiều thực hành văn hóa đặc sắc như Rô-băm, Rom Vong, nhạc Ngũ âm, Chầm riêng Chà Pây và đua ghe Ngo.", "period": "", "heritage_status": "", "app_content_hook": "Community hub liên kết tất cả di sản Khmer.", "source_id": "S13", "verification_grade": "A", "record_status": "CURATED_SYNTHESIS", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S13", "organization": "Cục Di sản văn hóa", "title": "Múa Rom vong của người Khmer tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/mua-rom-vong-cua-nguoi-khmer-tinh-soc-trang-3205", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK039", "name": "Múa Rom Vong", "entity_type": "Di sản phi vật thể", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Sóc Trăng", "community": "Khmer", "category": "Múa dân gian", "verified_summary": "Điệu múa vòng tròn quan trọng trong sinh hoạt cộng đồng và các lễ tết Khmer như Chol Chnam Thmây, Sen Dolta, Ok Om Bok.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Motion tutorial + ý nghĩa thế tay.", "source_id": "S13", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S13", "organization": "Cục Di sản văn hóa", "title": "Múa Rom vong của người Khmer tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/mua-rom-vong-cua-nguoi-khmer-tinh-soc-trang-3205", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK040", "name": "Động tác tay Chíp", "entity_type": "Động tác múa", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Không gian Rom Vong", "community": "Khmer", "category": "Múa dân gian", "verified_summary": "Một tư thế tay cơ bản trong Rom Vong, được mô tả như hình nụ lá và gắn với cảm giác tươi vui, khát vọng đi lên.", "period": "", "heritage_status": "", "app_content_hook": "Animation từng thế tay.", "source_id": "S13", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S13", "organization": "Cục Di sản văn hóa", "title": "Múa Rom vong của người Khmer tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/mua-rom-vong-cua-nguoi-khmer-tinh-soc-trang-3205", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK041", "name": "Động tác Thồ Thuôl", "entity_type": "Động tác múa", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Không gian Rom Vong", "community": "Khmer", "category": "Múa dân gian", "verified_summary": "Tư thế tay mang nghĩa nhận/đón lấy trong hệ động tác Rom Vong.", "period": "", "heritage_status": "", "app_content_hook": "Animation + tên Khmer/Việt.", "source_id": "S13", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S13", "organization": "Cục Di sản văn hóa", "title": "Múa Rom vong của người Khmer tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/mua-rom-vong-cua-nguoi-khmer-tinh-soc-trang-3205", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK042", "name": "Nhạc Ngũ âm Khmer Sóc Trăng", "entity_type": "Di sản phi vật thể", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Sóc Trăng", "community": "Khmer", "category": "Âm nhạc", "verified_summary": "Dàn nhạc truyền thống Khmer được công nhận là di sản văn hóa phi vật thể quốc gia năm 2019.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Tap từng nhạc cụ để nghe âm sắc.", "source_id": "S14", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S14", "organization": "Cục Di sản văn hóa", "title": "Nhạc Ngũ âm của người Khmer ở Sóc Trăng", "url": "https://dsvh.gov.vn/nhac-ngu-am-cua-nguoi-khmer-o-soc-trang-3203", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK043", "name": "Nghệ thuật Rô-băm Sóc Trăng", "entity_type": "Di sản phi vật thể", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Sóc Trăng", "community": "Khmer", "category": "Sân khấu", "verified_summary": "Loại hình sân khấu múa – hát của người Khmer, sử dụng mặt nạ, âm nhạc và các tích truyện, phản ánh đời sống và thế giới quan cộng đồng.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Character explorer: chằn, Hanuman, hoàng tử, công chúa.", "source_id": "S15", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 9.6025, "lng": 105.9739, "source": {"source_id": "S15", "organization": "Cục Di sản văn hóa", "title": "Nghệ thuật Rô băm của người Khmer ở Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-thuat-ro-bam-cua-nguoi-khmer-o-soc-trang-3123", "source_level": "National official", "default_grade": "A"}, "image": "https://www.handspan.com/uploads/VBLOG/620x400blogcontent/Dance-practice-in-the-Ok-Om-Bok-Festival.jpg"}, {"entity_id": "MK044", "name": "Đoàn Rô-băm Resmay Bưng Chông", "entity_type": "Nhóm thực hành", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Bưng Chông", "community": "Khmer", "category": "Sân khấu", "verified_summary": "Đoàn thực hành Rô-băm ở Bưng Chông được nêu trong tư liệu về việc bảo tồn và sáng tạo điệu múa Rô-băm.", "period": "", "heritage_status": "", "app_content_hook": "Profile đoàn + người truyền nghề + lịch biểu diễn; cần cập nhật thực địa.", "source_id": "S15", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S15", "organization": "Cục Di sản văn hóa", "title": "Nghệ thuật Rô băm của người Khmer ở Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-thuat-ro-bam-cua-nguoi-khmer-o-soc-trang-3123", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK045", "name": "Mặt nạ chằn Rô-băm", "entity_type": "Vật thể biểu diễn", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Không gian Rô-băm", "community": "Khmer", "category": "Sân khấu", "verified_summary": "Mặt nạ chằn là một trong những loại mặt nạ đặc trưng dùng để thể hiện tuyến nhân vật phản diện trong Rô-băm.", "period": "", "heritage_status": "", "app_content_hook": "3D mask + nhân vật + động tác.", "source_id": "S15", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S15", "organization": "Cục Di sản văn hóa", "title": "Nghệ thuật Rô băm của người Khmer ở Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-thuat-ro-bam-cua-nguoi-khmer-o-soc-trang-3123", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK046", "name": "Hanuman trong Rô-băm", "entity_type": "Nhân vật sân khấu", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Không gian Rô-băm", "community": "Khmer", "category": "Sân khấu / truyện", "verified_summary": "Nhân vật khỉ Hanuman xuất hiện trong hệ nhân vật Rô-băm, cho thấy mối liên hệ với kho truyện Reamker.", "period": "", "heritage_status": "", "app_content_hook": "Story bridge sang Ramayana/Reamker khu vực Đông Nam Á.", "source_id": "S15", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S15", "organization": "Cục Di sản văn hóa", "title": "Nghệ thuật Rô băm của người Khmer ở Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-thuat-ro-bam-cua-nguoi-khmer-o-soc-trang-3123", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK047", "name": "Reamker", "entity_type": "Truyện / sử thi liên quan", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Không gian Rô-băm Khmer", "community": "Khmer", "category": "Truyện kể", "verified_summary": "Reamker là nguồn tích truyện có quan hệ với sân khấu Rô-băm Khmer; cần biên tập bằng nguồn nghiên cứu chuyên sâu trước khi xuất bản bài dài.", "period": "", "heritage_status": "", "app_content_hook": "Story graph kết nối Việt Nam – Campuchia – Ramayana.", "source_id": "S15", "verification_grade": "B", "record_status": "NEEDS_DEEPER_VERIFY", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S15", "organization": "Cục Di sản văn hóa", "title": "Nghệ thuật Rô băm của người Khmer ở Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-thuat-ro-bam-cua-nguoi-khmer-o-soc-trang-3123", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK048", "name": "Lễ hội Oóc Om Bóc", "entity_type": "Lễ hội", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Không gian Khmer Nam Bộ", "community": "Khmer", "category": "Lễ hội", "verified_summary": "Lễ cúng Trăng của người Khmer có liên hệ chặt với hoạt động thả đèn và đua ghe Ngo.", "period": "", "heritage_status": "", "app_content_hook": "Festival explainer: trăng, nước, mùa vụ và cộng đồng.", "source_id": "S16", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S16", "organization": "Cục Di sản văn hóa", "title": "Lễ hội đua ghe Ngo của người Khmer", "url": "https://dsvh.gov.vn/le-hoi-dua-ghe-ngo-cua-nguoi-khmer-3441", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK049", "name": "Lễ hội đua ghe Ngo", "entity_type": "Di sản phi vật thể", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Sóc Trăng", "community": "Khmer", "category": "Lễ hội / thể thao dân gian", "verified_summary": "Thực hành đua ghe Ngo gắn với Oóc Om Bóc và đời sống tín ngưỡng Khmer Nam Bộ.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Live route map + profile từng đội ghe.", "source_id": "S16", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 9.6025, "lng": 105.9739, "source": {"source_id": "S16", "organization": "Cục Di sản văn hóa", "title": "Lễ hội đua ghe Ngo của người Khmer", "url": "https://dsvh.gov.vn/le-hoi-dua-ghe-ngo-cua-nguoi-khmer-3441", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK050", "name": "Ghe Ngo", "entity_type": "Vật thể nghi lễ", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Sóc Trăng", "community": "Khmer", "category": "Thuyền truyền thống", "verified_summary": "Loại ghe dài dùng trong lễ hội đua ghe Ngo của người Khmer.", "period": "", "heritage_status": "", "app_content_hook": "Object page: cấu tạo, trang trí, đội chèo, nghi thức.", "source_id": "S16", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S16", "organization": "Cục Di sản văn hóa", "title": "Lễ hội đua ghe Ngo của người Khmer", "url": "https://dsvh.gov.vn/le-hoi-dua-ghe-ngo-cua-nguoi-khmer-3441", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK051", "name": "Nghề làm bánh Pía", "entity_type": "Di sản phi vật thể", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Vũng Thơm / Châu Thành", "community": "Hoa Triều Châu và cộng đồng địa phương", "category": "Ẩm thực / nghề", "verified_summary": "Nghề làm bánh Pía gắn với cộng đồng người Hoa, địa danh Vũng Thơm và được công nhận DSVHPVT quốc gia năm 2020.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Process story: vỏ → nhân → nướng → đóng gói.", "source_id": "S17", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 9.672, "lng": 105.936, "source": {"source_id": "S17", "organization": "Cục Di sản văn hóa", "title": "Nghề làm bánh Pía, tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-lam-banh-pia-tinh-soc-trang-3329", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK052", "name": "Bánh Pía", "entity_type": "Ẩm thực", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Sóc Trăng", "community": "Hoa Triều Châu và cộng đồng địa phương", "category": "Ẩm thực", "verified_summary": "Loại bánh có gốc từ cộng đồng người Hoa Triều Châu; tên 'pía/pi-é' có nghĩa là bánh theo tiếng Triều Châu.", "period": "", "heritage_status": "", "app_content_hook": "Taste map: các kiểu nhân và biến đổi qua thời gian.", "source_id": "S17", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S17", "organization": "Cục Di sản văn hóa", "title": "Nghề làm bánh Pía, tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-lam-banh-pia-tinh-soc-trang-3329", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK053", "name": "Vũng Thơm", "entity_type": "Địa danh văn hóa", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Khu vực Châu Thành", "community": "Hoa Triều Châu", "category": "Làng nghề ẩm thực", "verified_summary": "Địa danh gắn với làng nghề bánh Pía, hình thành từ các gia đình gốc Hoa làm bánh để ăn và buôn bán.", "period": "", "heritage_status": "", "app_content_hook": "Walking/food heritage route.", "source_id": "S17", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S17", "organization": "Cục Di sản văn hóa", "title": "Nghề làm bánh Pía, tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-lam-banh-pia-tinh-soc-trang-3329", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK054", "name": "Âu Minh Xương", "entity_type": "Nhân vật nghề", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Vũng Thơm", "community": "Hoa", "category": "Nghệ nhân / người làm nghề", "verified_summary": "Được tư liệu Cục Di sản nhắc đến như một trong những người tiên phong của làng nghề bánh Pía, gắn với lò Công Lập Thành.", "period": "", "heritage_status": "", "app_content_hook": "Founder story của một nghề ẩm thực.", "source_id": "S17", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S17", "organization": "Cục Di sản văn hóa", "title": "Nghề làm bánh Pía, tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-lam-banh-pia-tinh-soc-trang-3329", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK055", "name": "Lò bánh Công Lập Thành", "entity_type": "Cơ sở nghề lịch sử", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Vũng Thơm", "community": "Hoa", "category": "Làng nghề ẩm thực", "verified_summary": "Được tư liệu di sản xem là một trong những lò bánh sớm của làng Vũng Thơm.", "period": "", "heritage_status": "", "app_content_hook": "Business-history card; cần xác minh tình trạng hoạt động hiện nay.", "source_id": "S17", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S17", "organization": "Cục Di sản văn hóa", "title": "Nghề làm bánh Pía, tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-lam-banh-pia-tinh-soc-trang-3329", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK056", "name": "Chầm riêng Chà Pây", "entity_type": "Di sản phi vật thể", "legacy_province": "Trà Vinh", "current_admin_2026": "Vĩnh Long", "location_text": "Trà Cú (địa danh trước sắp xếp)", "community": "Khmer", "category": "Âm nhạc / kể chuyện", "verified_summary": "Hình thức độc xướng đàn và hát dân gian Khmer, có tính ứng tác và kể chuyện; đang có nguy cơ mai một.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Audio archive + transcript + giải nghĩa từng tích truyện.", "source_id": "S18", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 9.697, "lng": 106.005, "source": {"source_id": "S18", "organization": "Cục Di sản văn hóa", "title": "Nghệ thuật Chầm riêng Chà Pây của người Khmer tỉnh Trà Vinh", "url": "https://dsvh.gov.vn/nghe-thuat-cham-rieng-cha-pay-cua-nguoi-khmer-tinh-tra-vinh-3153", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK057", "name": "Đàn Chà Pây", "entity_type": "Nhạc cụ", "legacy_province": "Trà Vinh", "current_admin_2026": "Vĩnh Long", "location_text": "Không gian Chầm riêng Chà Pây", "community": "Khmer", "category": "Nhạc cụ", "verified_summary": "Nhạc cụ cần dài, âm trầm ấm, dùng đệm cho lối hát kể chuyện Chầm riêng Chà Pây.", "period": "", "heritage_status": "", "app_content_hook": "3D instrument + samples âm thanh.", "source_id": "S18", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S18", "organization": "Cục Di sản văn hóa", "title": "Nghệ thuật Chầm riêng Chà Pây của người Khmer tỉnh Trà Vinh", "url": "https://dsvh.gov.vn/nghe-thuat-cham-rieng-cha-pay-cua-nguoi-khmer-tinh-tra-vinh-3153", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK058", "name": "Nghệ nhân Thạch Mâu", "entity_type": "Nghệ nhân", "legacy_province": "Trà Vinh", "current_admin_2026": "Vĩnh Long", "location_text": "Chông Bát, Tân Hiệp, Trà Cú (địa danh theo hồ sơ)", "community": "Khmer", "category": "Nghệ nhân", "verified_summary": "Hồ sơ Cục Di sản ghi nhận ông là người nắm giữ và có khả năng trình diễn, ứng tác Chầm riêng Chà Pây tại thời điểm điều tra.", "period": "Sinh 1934", "heritage_status": "", "app_content_hook": "Ưu tiên xác minh tình trạng hiện tại và quyền thu âm/phỏng vấn.", "source_id": "S18", "verification_grade": "A", "record_status": "NEEDS_CURRENT_STATUS_VERIFY", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S18", "organization": "Cục Di sản văn hóa", "title": "Nghệ thuật Chầm riêng Chà Pây của người Khmer tỉnh Trà Vinh", "url": "https://dsvh.gov.vn/nghe-thuat-cham-rieng-cha-pay-cua-nguoi-khmer-tinh-tra-vinh-3153", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK059", "name": "Hát Sắc bùa Phú Lễ", "entity_type": "Di sản phi vật thể", "legacy_province": "Bến Tre", "current_admin_2026": "Vĩnh Long", "location_text": "Phú Lễ, Ba Tri (địa danh trước sắp xếp)", "community": "Kinh", "category": "Nghệ thuật trình diễn", "verified_summary": "Hát Sắc bùa Phú Lễ được đưa vào Danh mục DSVHPVT quốc gia năm 2017.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Cần research phase 2 để bổ sung bài bản, đội hát và nghệ nhân.", "source_id": "S12", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.07, "lng": 106.61, "source": {"source_id": "S12", "organization": "Cục Di sản văn hóa", "title": "Công bố Danh mục DSVHPVT quốc gia đợt XVII", "url": "https://dsvh.gov.vn/cong-bo-danh-muc-di-san-van-hoa-phi-vat-the-quoc-gia-dot-xvii-1300", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK060", "name": "Phú Lễ", "entity_type": "Địa danh văn hóa", "legacy_province": "Bến Tre", "current_admin_2026": "Vĩnh Long", "location_text": "Phú Lễ / Ba Tri", "community": "Kinh", "category": "Địa danh di sản", "verified_summary": "Địa danh gắn với di sản Hát Sắc bùa Phú Lễ.", "period": "", "heritage_status": "", "app_content_hook": "Hub địa phương cho âm nhạc + đình làng + lễ tục.", "source_id": "S12", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S12", "organization": "Cục Di sản văn hóa", "title": "Công bố Danh mục DSVHPVT quốc gia đợt XVII", "url": "https://dsvh.gov.vn/cong-bo-danh-muc-di-san-van-hoa-phi-vat-the-quoc-gia-dot-xvii-1300", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK061", "name": "Lễ hội Nghinh Ông Bình Đại", "entity_type": "Di sản phi vật thể", "legacy_province": "Bến Tre", "current_admin_2026": "Vĩnh Long", "location_text": "Bình Đại", "community": "Cộng đồng ngư dân", "category": "Tín ngưỡng biển", "verified_summary": "Lễ hội Nghinh Ông tại Bình Đại được đưa vào Danh mục DSVHPVT quốc gia năm 2016.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "So sánh tín ngưỡng cá Ông giữa Bình Đại và Sông Đốc.", "source_id": "S19", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.19, "lng": 106.7, "source": {"source_id": "S19", "organization": "Cục Di sản văn hóa", "title": "Công bố Danh mục DSVHPVT quốc gia đợt XII", "url": "https://dsvh.gov.vn/cong-bo-danh-muc-di-san-van-hoa-phi-vat-the-quoc-gia-dot-xii-1183", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK062", "name": "Tín ngưỡng thờ cá Ông ở ven biển Tây Nam Bộ", "entity_type": "Thực hành tín ngưỡng", "legacy_province": "Bến Tre", "current_admin_2026": "Vĩnh Long", "location_text": "Ven biển ĐBSCL", "community": "Cộng đồng ngư dân", "category": "Tín ngưỡng biển", "verified_summary": "Thực hành tín ngưỡng được thể hiện rõ qua các lễ Nghinh Ông ở Bình Đại và Sông Đốc; entity tổng hợp cần nghiên cứu liên vùng.", "period": "", "heritage_status": "", "app_content_hook": "Cultural route dọc bờ biển.", "source_id": "S19", "verification_grade": "B", "record_status": "CURATED_SYNTHESIS", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S19", "organization": "Cục Di sản văn hóa", "title": "Công bố Danh mục DSVHPVT quốc gia đợt XII", "url": "https://dsvh.gov.vn/cong-bo-danh-muc-di-san-van-hoa-phi-vat-the-quoc-gia-dot-xii-1183", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK063", "name": "Tục cúng Việc lề", "entity_type": "Di sản phi vật thể", "legacy_province": "Long An", "current_admin_2026": "Tây Ninh", "location_text": "Nhiều dòng họ tại Long An cũ", "community": "Kinh", "category": "Tín ngưỡng gia tộc", "verified_summary": "Nghi thức hiệp kỵ tổ tiên và tưởng nhớ các thế hệ khai phá vùng đất Nam Bộ; được công nhận DSVHPVT quốc gia năm 2014.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Family history stories; dữ liệu phải xin phép cộng đồng.", "source_id": "S20", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S20", "organization": "Cục Di sản văn hóa", "title": "Tục cúng Việc lề ở Long An", "url": "https://dsvh.gov.vn/tuc-cung-viec-le-o-long-an-1156", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK064", "name": "Nghề dệt chiếu lác Long An", "entity_type": "Di sản phi vật thể", "legacy_province": "Long An", "current_admin_2026": "Tây Ninh", "location_text": "Long An cũ", "community": "Kinh", "category": "Nghề thủ công", "verified_summary": "Nghề dệt chiếu lác với hệ kỹ thuật, nguyên liệu và nhiều sản phẩm từ lác; được đưa vào Danh mục quốc gia năm 2014.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Object chain: cây lác → nhuộm → dệt → hoa văn → sản phẩm.", "source_id": "S21", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S21", "organization": "Cục Di sản văn hóa", "title": "Nghề Dệt chiếu lác ở Long An", "url": "https://dsvh.gov.vn/nghe-det-chieu-lac-o-long-an-1157", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK065", "name": "Chiếu lác Nam Bộ", "entity_type": "Sản phẩm thủ công", "legacy_province": "Long An", "current_admin_2026": "Tây Ninh", "location_text": "Long An cũ", "community": "Kinh", "category": "Thủ công", "verified_summary": "Sản phẩm gắn với nghề dệt chiếu lác; còn hiện diện trong ca dao, thành ngữ và cổ nhạc theo hồ sơ di sản.", "period": "", "heritage_status": "", "app_content_hook": "Material culture card + oral literature links.", "source_id": "S21", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S21", "organization": "Cục Di sản văn hóa", "title": "Nghề Dệt chiếu lác ở Long An", "url": "https://dsvh.gov.vn/nghe-det-chieu-lac-o-long-an-1157", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK066", "name": "Lễ Làm chay", "entity_type": "Di sản phi vật thể", "legacy_province": "Long An", "current_admin_2026": "Tây Ninh", "location_text": "Tầm Vu / Châu Thành cũ", "community": "Cộng đồng địa phương", "category": "Lễ hội", "verified_summary": "Lễ tổ chức ngày 15–16 tháng Giêng âm lịch, tưởng niệm nghĩa sĩ và cầu siêu/cầu an; được công nhận DSVHPVT quốc gia.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Timeline 2 ngày lễ + bản đồ các điểm nghi lễ.", "source_id": "S22", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.438, "lng": 106.451, "source": {"source_id": "S22", "organization": "Cục Di sản văn hóa", "title": "Lễ Làm chay ở Long An", "url": "https://dsvh.gov.vn/le-lam-chay-o-long-an-1158", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK067", "name": "Tầm Vu", "entity_type": "Địa danh văn hóa", "legacy_province": "Long An", "current_admin_2026": "Tây Ninh", "location_text": "Tầm Vu", "community": "Cộng đồng địa phương", "category": "Địa danh lễ hội", "verified_summary": "Không gian trung tâm của Lễ Làm chay với mạng lưới đình, chùa, miếu và sông Tầm Vu.", "period": "", "heritage_status": "", "app_content_hook": "Festival map.", "source_id": "S22", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S22", "organization": "Cục Di sản văn hóa", "title": "Lễ Làm chay ở Long An", "url": "https://dsvh.gov.vn/le-lam-chay-o-long-an-1158", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK068", "name": "Đình Tân Xuân", "entity_type": "Địa điểm văn hóa", "legacy_province": "Long An", "current_admin_2026": "Tây Ninh", "location_text": "Tầm Vu / Châu Thành cũ", "community": "Cộng đồng địa phương", "category": "Đình làng", "verified_summary": "Từ năm 1980, hoạt động cúng chính của Lễ Làm chay được chuyển vào Đình Tân Xuân.", "period": "", "heritage_status": "", "app_content_hook": "Place page gắn trực tiếp với trình tự lễ.", "source_id": "S22", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S22", "organization": "Cục Di sản văn hóa", "title": "Lễ Làm chay ở Long An", "url": "https://dsvh.gov.vn/le-lam-chay-o-long-an-1158", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK069", "name": "Nghi thức Xô giàn – đưa khách", "entity_type": "Nghi lễ", "legacy_province": "Long An", "current_admin_2026": "Tây Ninh", "location_text": "Tầm Vu", "community": "Cộng đồng địa phương", "category": "Nghi lễ", "verified_summary": "Nghi thức quan trọng vào nửa đêm ngày 16 tháng Giêng trong Lễ Làm chay, kết thúc bằng việc tiễn cô hồn và thả thuyền giấy.", "period": "", "heritage_status": "", "app_content_hook": "Explainer bằng sơ đồ, tránh giật gân/tín ngưỡng hóa.", "source_id": "S22", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S22", "organization": "Cục Di sản văn hóa", "title": "Lễ Làm chay ở Long An", "url": "https://dsvh.gov.vn/le-lam-chay-o-long-an-1158", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK070", "name": "Thuyền giấy trong Lễ Làm chay", "entity_type": "Vật thể nghi lễ", "legacy_province": "Long An", "current_admin_2026": "Tây Ninh", "location_text": "Tầm Vu", "community": "Cộng đồng địa phương", "category": "Vật thể nghi lễ", "verified_summary": "Thuyền giấy khung tre đặt trên bè chuối được dùng trong nghi thức 'đưa khách' của Lễ Làm chay.", "period": "", "heritage_status": "", "app_content_hook": "Object story + quy trình làm (cần fieldwork).", "source_id": "S22", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S22", "organization": "Cục Di sản văn hóa", "title": "Lễ Làm chay ở Long An", "url": "https://dsvh.gov.vn/le-lam-chay-o-long-an-1158", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK071", "name": "Ký ức khai phá Nam Bộ qua Việc lề", "entity_type": "Chủ đề / câu chuyện", "legacy_province": "Long An", "current_admin_2026": "Tây Ninh", "location_text": "Long An cũ", "community": "Kinh", "category": "Lịch sử cộng đồng", "verified_summary": "Tục cúng Việc lề tái hiện ký ức về những lưu dân khẩn hoang, mở đất và duy trì quan hệ dòng họ.", "period": "Thời mở đất–nay", "heritage_status": "", "app_content_hook": "Story collection theo từng dòng họ; cần consent.", "source_id": "S20", "verification_grade": "A", "record_status": "CURATED_SYNTHESIS", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S20", "organization": "Cục Di sản văn hóa", "title": "Tục cúng Việc lề ở Long An", "url": "https://dsvh.gov.vn/tuc-cung-viec-le-o-long-an-1156", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK072", "name": "Nghề làm muối Bạc Liêu", "entity_type": "Di sản phi vật thể", "legacy_province": "Bạc Liêu", "current_admin_2026": "Cà Mau", "location_text": "Vùng muối Bạc Liêu cũ", "community": "Diêm dân", "category": "Nghề truyền thống", "verified_summary": "Nghề muối phản ánh lịch sử khai phá vùng đất, kỹ năng thích nghi tự nhiên và đời sống cộng đồng; được công nhận DSVHPVT quốc gia năm 2020.", "period": "", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Seasonal field story: một ngày trên ruộng muối.", "source_id": "S23", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 9.22, "lng": 105.76, "source": {"source_id": "S23", "organization": "Cục Di sản văn hóa", "title": "Nghề làm muối ở Bạc Liêu", "url": "https://dsvh.gov.vn/nghe-lam-muoi-o-bac-lieu-3318", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK073", "name": "Muối Ba Thắc", "entity_type": "Sản phẩm / ký ức nghề", "legacy_province": "Bạc Liêu", "current_admin_2026": "Cà Mau", "location_text": "Bạc Liêu cũ", "community": "Diêm dân", "category": "Ẩm thực / nghề", "verified_summary": "Tên thương hiệu lịch sử được hồ sơ di sản liên hệ với muối Bạc Liêu ngày nay.", "period": "", "heritage_status": "", "app_content_hook": "Story lịch sử thương mại của muối.", "source_id": "S23", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S23", "organization": "Cục Di sản văn hóa", "title": "Nghề làm muối ở Bạc Liêu", "url": "https://dsvh.gov.vn/nghe-lam-muoi-o-bac-lieu-3318", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK074", "name": "Diêm dân Bạc Liêu", "entity_type": "Cộng đồng nghề", "legacy_province": "Bạc Liêu", "current_admin_2026": "Cà Mau", "location_text": "Vùng muối Bạc Liêu cũ", "community": "Kinh và cộng đồng địa phương", "category": "Cộng đồng nghề", "verified_summary": "Cộng đồng thực hành nghề muối, nơi kiến thức nghề được truyền qua nhiều thế hệ.", "period": "", "heritage_status": "", "app_content_hook": "Profile con người thay vì chỉ profile sản phẩm.", "source_id": "S23", "verification_grade": "A", "record_status": "CURATED_SYNTHESIS", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S23", "organization": "Cục Di sản văn hóa", "title": "Nghề làm muối ở Bạc Liêu", "url": "https://dsvh.gov.vn/nghe-lam-muoi-o-bac-lieu-3318", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK075", "name": "Nghề gác kèo ong U Minh", "entity_type": "Di sản phi vật thể", "legacy_province": "Cà Mau", "current_admin_2026": "Cà Mau", "location_text": "U Minh – Trần Văn Thời", "community": "Cộng đồng thợ rừng", "category": "Nghề truyền thống", "verified_summary": "Nghề dẫn dụ ong mật về làm tổ trên kèo nhân tạo trong rừng tràm, hình thành từ thời khai hoang và truyền qua nhiều thế hệ.", "period": "Khoảng nửa sau thế kỷ XIX–nay", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Interactive: chọn trảng, hướng nắng, dựng kèo.", "source_id": "S24", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 9.25, "lng": 104.95, "source": {"source_id": "S24", "organization": "Cục Di sản văn hóa", "title": "Nghề gác kèo ong", "url": "https://dsvh.gov.vn/nghe-gac-keo-ong-3206", "source_level": "National official", "default_grade": "A"}, "image": "https://camau.gov.vn/Datafiles/camau-gov-vn/wps/wcm/connect/5452f57f-9286-4a08-b4b4-ef84a852aac5/5/5-jpg-3fmod-3dajperes-26amp-3bcvid-3d.png"}, {"entity_id": "MK076", "name": "Kèo ong", "entity_type": "Vật dụng nghề", "legacy_province": "Cà Mau", "current_admin_2026": "Cà Mau", "location_text": "U Minh Hạ", "community": "Cộng đồng thợ gác kèo", "category": "Dụng cụ nghề", "verified_summary": "Bộ kèo gồm cây nống, cây nạng và thân kèo, được dựng để tạo vị trí thích hợp cho ong mật về làm tổ.", "period": "", "heritage_status": "", "app_content_hook": "3D exploded view.", "source_id": "S24", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S24", "organization": "Cục Di sản văn hóa", "title": "Nghề gác kèo ong", "url": "https://dsvh.gov.vn/nghe-gac-keo-ong-3206", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK077", "name": "Đoàn Phong ngạn", "entity_type": "Tổ chức nghề truyền thống", "legacy_province": "Cà Mau", "current_admin_2026": "Cà Mau", "location_text": "Rừng U Minh", "community": "Thợ gác kèo ong", "category": "Tổ chức cộng đồng", "verified_summary": "Nhóm thợ gác kèo ong có quy ước nghề nghiệp, hỗ trợ nhau và tuân thủ các luật bất thành văn về bảo vệ phần rừng và tổ ong.", "period": "", "heritage_status": "", "app_content_hook": "Story về đạo đức nghề và quản trị tài nguyên cộng đồng.", "source_id": "S24", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S24", "organization": "Cục Di sản văn hóa", "title": "Nghề gác kèo ong", "url": "https://dsvh.gov.vn/nghe-gac-keo-ong-3206", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK078", "name": "Mật ong rừng U Minh Hạ", "entity_type": "Sản vật văn hóa", "legacy_province": "Cà Mau", "current_admin_2026": "Cà Mau", "location_text": "U Minh Hạ", "community": "Thợ rừng / cư dân U Minh", "category": "Ẩm thực / sản vật", "verified_summary": "Sản phẩm gắn trực tiếp với nghề gác kèo ong và mùa hoa tràm rừng U Minh Hạ.", "period": "", "heritage_status": "", "app_content_hook": "Traceability story từ hoa tràm → kèo → mật.", "source_id": "S24", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S24", "organization": "Cục Di sản văn hóa", "title": "Nghề gác kèo ong", "url": "https://dsvh.gov.vn/nghe-gac-keo-ong-3206", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK079", "name": "Rừng tràm U Minh Hạ như cảnh quan văn hóa", "entity_type": "Cảnh quan văn hóa", "legacy_province": "Cà Mau", "current_admin_2026": "Cà Mau", "location_text": "U Minh Hạ", "community": "Cộng đồng cư dân rừng", "category": "Cảnh quan", "verified_summary": "Môi trường rừng tràm là nền tảng sinh thái cho nghề gác kèo ong và tri thức nghề liên quan.", "period": "", "heritage_status": "", "app_content_hook": "Map sinh thái + văn hóa.", "source_id": "S24", "verification_grade": "A", "record_status": "CURATED_SYNTHESIS", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S24", "organization": "Cục Di sản văn hóa", "title": "Nghề gác kèo ong", "url": "https://dsvh.gov.vn/nghe-gac-keo-ong-3206", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK080", "name": "Lễ hội Nghinh Ông Sông Đốc", "entity_type": "Di sản phi vật thể", "legacy_province": "Cà Mau", "current_admin_2026": "Cà Mau", "location_text": "Sông Đốc", "community": "Cộng đồng ngư dân", "category": "Tín ngưỡng biển", "verified_summary": "Lễ hội tín ngưỡng biển có lịch sử hơn một thế kỷ, được duy trì từ năm 1925 và đã được đưa vào Danh mục DSVHPVT quốc gia.", "period": "1925–nay", "heritage_status": "Di sản văn hóa phi vật thể quốc gia", "app_content_hook": "Festival timeline + đoàn rước trên biển.", "source_id": "S25", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 9.046, "lng": 104.835, "source": {"source_id": "S25", "organization": "UBND xã Sông Đốc, tỉnh Cà Mau", "title": "101 năm Lễ hội Nghinh Ông Sông Đốc", "url": "https://songdoc.camau.gov.vn/van-hoa-xa-hoi/101-nam-le-hoi-nghinh-ong-song-doc-hanh-trinh-the-ky-cua-mot-di-san-quoc-gia-131087", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK081", "name": "Lăng Ông Nam Hải Sông Đốc", "entity_type": "Địa điểm văn hóa", "legacy_province": "Cà Mau", "current_admin_2026": "Cà Mau", "location_text": "Sông Đốc", "community": "Cộng đồng ngư dân", "category": "Tín ngưỡng biển", "verified_summary": "Không gian thờ cá Ông và trung tâm thực hành Lễ hội Nghinh Ông Sông Đốc.", "period": "", "heritage_status": "Di tích lịch sử cấp tỉnh", "app_content_hook": "Place page + bộ xương cá Ông + nghi thức.", "source_id": "S26", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S26", "organization": "Cổng TTĐT tỉnh Cà Mau", "title": "Làng biển Sông Đốc", "url": "https://www.camau.gov.vn/diem-den/lang-bien-song-doc-254285", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK082", "name": "Rước Ông trên biển Sông Đốc", "entity_type": "Nghi lễ", "legacy_province": "Cà Mau", "current_admin_2026": "Cà Mau", "location_text": "Sông Đốc", "community": "Cộng đồng ngư dân", "category": "Nghi lễ", "verified_summary": "Nghi thức trọng tâm của Lễ hội Nghinh Ông, đoàn rước xuất phát từ Lăng Ông ra vùng biển.", "period": "Hằng năm", "heritage_status": "", "app_content_hook": "Route animation.", "source_id": "S25", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S25", "organization": "UBND xã Sông Đốc, tỉnh Cà Mau", "title": "101 năm Lễ hội Nghinh Ông Sông Đốc", "url": "https://songdoc.camau.gov.vn/van-hoa-xa-hoi/101-nam-le-hoi-nghinh-ong-song-doc-hanh-trinh-the-ky-cua-mot-di-san-quoc-gia-131087", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK083", "name": "Tín ngưỡng cá Ông ở Sông Đốc", "entity_type": "Thực hành tín ngưỡng", "legacy_province": "Cà Mau", "current_admin_2026": "Cà Mau", "location_text": "Sông Đốc", "community": "Cộng đồng ngư dân", "category": "Tín ngưỡng biển", "verified_summary": "Tín ngưỡng xem cá Ông như vị thần hộ mệnh của ngư dân, thể hiện qua lăng thờ và lễ Nghinh Ông.", "period": "", "heritage_status": "", "app_content_hook": "Oral histories của ngư dân (fieldwork priority).", "source_id": "S25", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S25", "organization": "UBND xã Sông Đốc, tỉnh Cà Mau", "title": "101 năm Lễ hội Nghinh Ông Sông Đốc", "url": "https://songdoc.camau.gov.vn/van-hoa-xa-hoi/101-nam-le-hoi-nghinh-ong-song-doc-hanh-trinh-the-ky-cua-mot-di-san-quoc-gia-131087", "source_level": "Local official", "default_grade": "A"}, "image": null}, {"entity_id": "MK084", "name": "Đàn kìm", "entity_type": "Nhạc cụ", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Người thực hành ĐCTT", "category": "Nhạc cụ", "verified_summary": "Một trong các nhạc cụ được UNESCO liệt kê trong thực hành Đờn ca tài tử.", "period": "", "heritage_status": "", "app_content_hook": "Audio sample + cấu tạo + vai trò trong ban nhạc.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK085", "name": "Đàn cò", "entity_type": "Nhạc cụ", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Người thực hành ĐCTT", "category": "Nhạc cụ", "verified_summary": "Nhạc cụ dây kéo được UNESCO liệt kê trong dàn Đờn ca tài tử.", "period": "", "heritage_status": "", "app_content_hook": "Audio sample.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK086", "name": "Đàn tranh", "entity_type": "Nhạc cụ", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Người thực hành ĐCTT", "category": "Nhạc cụ", "verified_summary": "Nhạc cụ dây được UNESCO liệt kê trong thực hành Đờn ca tài tử.", "period": "", "heritage_status": "", "app_content_hook": "Audio sample.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK087", "name": "Đàn tỳ bà", "entity_type": "Nhạc cụ", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Người thực hành ĐCTT", "category": "Nhạc cụ", "verified_summary": "Nhạc cụ được UNESCO nêu trong hệ nhạc cụ của Đờn ca tài tử.", "period": "", "heritage_status": "", "app_content_hook": "Audio sample.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK088", "name": "Đàn bầu", "entity_type": "Nhạc cụ", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Người thực hành ĐCTT", "category": "Nhạc cụ", "verified_summary": "Nhạc cụ một dây được UNESCO nêu trong hệ nhạc cụ của Đờn ca tài tử.", "period": "", "heritage_status": "", "app_content_hook": "Audio sample.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK089", "name": "Sáo trúc trong Đờn ca tài tử", "entity_type": "Nhạc cụ", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Người thực hành ĐCTT", "category": "Nhạc cụ", "verified_summary": "Sáo tre được UNESCO nêu trong hệ nhạc cụ sử dụng trong Đờn ca tài tử.", "period": "", "heritage_status": "", "app_content_hook": "Audio sample.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK090", "name": "20 bài bản chính của Đờn ca tài tử", "entity_type": "Kho bài bản", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Người thực hành ĐCTT", "category": "Âm nhạc", "verified_summary": "UNESCO mô tả repertoire Đờn ca tài tử dựa trên 20 bài bản chính và 72 bài cổ điển.", "period": "", "heritage_status": "", "app_content_hook": "Phase 2: tách thành từng bài, có bản quyền/nguồn âm thanh rõ ràng.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK091", "name": "72 bài cổ điển trong hệ Đờn ca tài tử", "entity_type": "Kho bài bản", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Người thực hành ĐCTT", "category": "Âm nhạc", "verified_summary": "UNESCO ghi nhận hệ repertoire còn bao gồm 72 bài cổ điển bên cạnh 20 bài bản chính.", "period": "", "heritage_status": "", "app_content_hook": "Music knowledge graph; cần danh mục học thuật đầy đủ ở phase 2.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK092", "name": "Truyền nghề Đờn ca tài tử theo lối truyền khẩu", "entity_type": "Thực hành truyền dạy", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Nghệ nhân và học trò", "category": "Giáo dục truyền thống", "verified_summary": "UNESCO mô tả việc truyền dạy chủ yếu qua truyền khẩu, bắt chước giữa thầy và trò; người học nhạc cụ cần nhiều năm rèn luyện.", "period": "", "heritage_status": "", "app_content_hook": "Mentor lineage graph.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK093", "name": "Ứng tác trong Đờn ca tài tử", "entity_type": "Kỹ thuật biểu diễn", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "Nam Bộ", "community": "Người thực hành ĐCTT", "category": "Âm nhạc", "verified_summary": "Người biểu diễn biến hóa, trang trí và ứng tác trên khung giai điệu cùng mẫu tiết tấu chính.", "period": "", "heritage_status": "", "app_content_hook": "Before/after audio để người dùng nghe thế nào là ứng tác.", "source_id": "S01", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S01", "organization": "UNESCO", "title": "Art of Đờn ca tài tử music and song in southern Viet Nam", "url": "https://ich.unesco.org/en/RL/art-of-n-ca-tai-t-music-and-song-in-southern-viet-nam-00733", "source_level": "International / official", "default_grade": "A"}, "image": null}, {"entity_id": "MK094", "name": "Chợ nổi Cái Bè", "entity_type": "Địa điểm văn hóa", "legacy_province": "Tiền Giang", "current_admin_2026": "Đồng Tháp", "location_text": "Cái Bè", "community": "Cộng đồng thương hồ", "category": "Văn hóa sông nước", "verified_summary": "Địa điểm chợ nổi tại Cái Bè được cổng du lịch Đồng Tháp sau sắp xếp liệt kê trong hệ thống điểm đến; cần bổ sung hồ sơ chuyên sâu.", "period": "", "heritage_status": "", "app_content_hook": "So sánh Cái Bè – Cái Răng: lịch sử, hàng hóa, nhịp hoạt động.", "source_id": "S28", "verification_grade": "B", "record_status": "NEEDS_DEEPER_VERIFY", "notes": "", "lat": 10.334, "lng": 106.035, "source": {"source_id": "S28", "organization": "Du lịch Đồng Tháp", "title": "Tiềm năng và tài nguyên du lịch Đồng Tháp", "url": "https://dulich.dongthap.gov.vn/vi/detailnews/?id=news_1204&t=tiem-nang-va-tai-nguyen-du-lich-dong-thap", "source_level": "Local official", "default_grade": "B"}, "image": null}, {"entity_id": "MK095", "name": "Nhà cổ Cái Bè", "entity_type": "Địa điểm văn hóa", "legacy_province": "Tiền Giang", "current_admin_2026": "Đồng Tháp", "location_text": "Cái Bè", "community": "Cộng đồng địa phương", "category": "Kiến trúc", "verified_summary": "Nhóm nhà cổ tại Cái Bè được hệ thống du lịch địa phương giới thiệu như một tài nguyên văn hóa; cần tách từng ngôi nhà ở phase 2.", "period": "", "heritage_status": "", "app_content_hook": "Architecture route.", "source_id": "S28", "verification_grade": "B", "record_status": "NEEDS_DEEPER_VERIFY", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S28", "organization": "Du lịch Đồng Tháp", "title": "Tiềm năng và tài nguyên du lịch Đồng Tháp", "url": "https://dulich.dongthap.gov.vn/vi/detailnews/?id=news_1204&t=tiem-nang-va-tai-nguyen-du-lich-dong-thap", "source_level": "Local official", "default_grade": "B"}, "image": null}, {"entity_id": "MK096", "name": "Chùa Vĩnh Tràng", "entity_type": "Địa điểm văn hóa", "legacy_province": "Tiền Giang", "current_admin_2026": "Đồng Tháp", "location_text": "Mỹ Tho", "community": "Cộng đồng Phật giáo", "category": "Kiến trúc / tôn giáo", "verified_summary": "Điểm văn hóa – tôn giáo được hệ thống du lịch Đồng Tháp hiện nay liệt kê trong mạng lưới điểm đến khu vực Mỹ Tho.", "period": "", "heritage_status": "", "app_content_hook": "Research phase 2: kiến trúc, lịch sử, tượng và cộng đồng.", "source_id": "S28", "verification_grade": "B", "record_status": "NEEDS_DEEPER_VERIFY", "notes": "", "lat": 10.3607, "lng": 106.362, "source": {"source_id": "S28", "organization": "Du lịch Đồng Tháp", "title": "Tiềm năng và tài nguyên du lịch Đồng Tháp", "url": "https://dulich.dongthap.gov.vn/vi/detailnews/?id=news_1204&t=tiem-nang-va-tai-nguyen-du-lich-dong-thap", "source_level": "Local official", "default_grade": "B"}, "image": null}, {"entity_id": "MK097", "name": "Gò Tháp", "entity_type": "Địa điểm văn hóa", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Khu vực Tháp Mười", "community": "Cư dân cổ và cộng đồng địa phương", "category": "Khảo cổ / lịch sử", "verified_summary": "Khu di tích quan trọng của Đồng Tháp, được hệ thống du lịch địa phương liên hệ với không gian văn hóa Phù Nam – Óc Eo.", "period": "Cổ đại–cận đại", "heritage_status": "", "app_content_hook": "Research sâu bằng hồ sơ di tích quốc gia đặc biệt.", "source_id": "S28", "verification_grade": "B", "record_status": "NEEDS_DEEPER_VERIFY", "notes": "", "lat": 10.585, "lng": 105.826, "source": {"source_id": "S28", "organization": "Du lịch Đồng Tháp", "title": "Tiềm năng và tài nguyên du lịch Đồng Tháp", "url": "https://dulich.dongthap.gov.vn/vi/detailnews/?id=news_1204&t=tiem-nang-va-tai-nguyen-du-lich-dong-thap", "source_level": "Local official", "default_grade": "B"}, "image": null}, {"entity_id": "MK098", "name": "Xẻo Quýt", "entity_type": "Địa điểm văn hóa", "legacy_province": "Đồng Tháp", "current_admin_2026": "Đồng Tháp", "location_text": "Cao Lãnh cũ", "community": "Cộng đồng địa phương", "category": "Lịch sử", "verified_summary": "Khu căn cứ kháng chiến trong cảnh quan rừng tràm, hiện được bảo tồn như một điểm lịch sử – sinh thái.", "period": "Thế kỷ XX", "heritage_status": "", "app_content_hook": "Story map về địa hình và chiến khu.", "source_id": "S28", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": 10.421, "lng": 105.611, "source": {"source_id": "S28", "organization": "Du lịch Đồng Tháp", "title": "Tiềm năng và tài nguyên du lịch Đồng Tháp", "url": "https://dulich.dongthap.gov.vn/vi/detailnews/?id=news_1204&t=tiem-nang-va-tai-nguyen-du-lich-dong-thap", "source_level": "Local official", "default_grade": "B"}, "image": null}, {"entity_id": "MK099", "name": "Cù lao Thới Sơn", "entity_type": "Địa điểm văn hóa", "legacy_province": "Tiền Giang", "current_admin_2026": "Đồng Tháp", "location_text": "Sông Tiền / khu vực Mỹ Tho", "community": "Cộng đồng miệt vườn", "category": "Đời sống miệt vườn", "verified_summary": "Điểm đến được hệ thống du lịch Đồng Tháp hiện tại liệt kê; phù hợp nghiên cứu sâu về đời sống cù lao và du lịch miệt vườn.", "period": "", "heritage_status": "", "app_content_hook": "Fieldwork: nhà vườn, nghề, âm nhạc, ẩm thực.", "source_id": "S28", "verification_grade": "B", "record_status": "NEEDS_DEEPER_VERIFY", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S28", "organization": "Du lịch Đồng Tháp", "title": "Tiềm năng và tài nguyên du lịch Đồng Tháp", "url": "https://dulich.dongthap.gov.vn/vi/detailnews/?id=news_1204&t=tiem-nang-va-tai-nguyen-du-lich-dong-thap", "source_level": "Local official", "default_grade": "B"}, "image": null}, {"entity_id": "MK100", "name": "Cộng đồng Hoa Triều Châu ở Sóc Trăng", "entity_type": "Cộng đồng", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Sóc Trăng / Vũng Thơm", "community": "Hoa Triều Châu", "category": "Cộng đồng", "verified_summary": "Cộng đồng có vai trò quan trọng trong lịch sử hình thành nghề bánh Pía ở Sóc Trăng.", "period": "Từ thời di cư Minh Hương–nay", "heritage_status": "", "app_content_hook": "Community hub nối ẩm thực, tín ngưỡng và thương mại.", "source_id": "S17", "verification_grade": "A", "record_status": "CURATED_SYNTHESIS", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S17", "organization": "Cục Di sản văn hóa", "title": "Nghề làm bánh Pía, tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-lam-banh-pia-tinh-soc-trang-3329", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK101", "name": "Vỏ bánh Pía hai lớp", "entity_type": "Kỹ thuật ẩm thực", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Vũng Thơm", "community": "Người làm bánh Pía", "category": "Ẩm thực", "verified_summary": "Vỏ bánh Pía truyền thống gồm lớp bột nước và bột dầu, tạo cấu trúc nhiều lớp đặc trưng.", "period": "", "heritage_status": "", "app_content_hook": "Animated process.", "source_id": "S17", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S17", "organization": "Cục Di sản văn hóa", "title": "Nghề làm bánh Pía, tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-lam-banh-pia-tinh-soc-trang-3329", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK102", "name": "Bánh Pía can xại", "entity_type": "Biến thể ẩm thực", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "Vũng Thơm", "community": "Người làm bánh Pía", "category": "Ẩm thực", "verified_summary": "Biến thể truyền thống được hồ sơ di sản mô tả là khó làm, cần kinh nghiệm và kỹ năng xử lý nguyên liệu.", "period": "", "heritage_status": "", "app_content_hook": "Rare-food heritage tag.", "source_id": "S17", "verification_grade": "A", "record_status": "VERIFIED", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S17", "organization": "Cục Di sản văn hóa", "title": "Nghề làm bánh Pía, tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/nghe-lam-banh-pia-tinh-soc-trang-3329", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK103", "name": "Mạng lưới văn hóa sông nước Mekong", "entity_type": "Chủ đề / tuyến", "legacy_province": "Cần Thơ", "current_admin_2026": "Cần Thơ", "location_text": "ĐBSCL", "community": "Nhiều cộng đồng", "category": "Cultural route", "verified_summary": "Entity tổng hợp nối chợ nổi, hò, thương hồ, ghe xuồng và các cộng đồng sống theo hệ thống sông Mekong.", "period": "", "heritage_status": "", "app_content_hook": "Một trong các tuyến khám phá chính của app.", "source_id": "S03", "verification_grade": "B", "record_status": "CURATED_SYNTHESIS", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S03", "organization": "Cục Di sản văn hóa", "title": "Hò Cần Thơ", "url": "https://dsvh.gov.vn/ho-can-tho-3122", "source_level": "National official", "default_grade": "A"}, "image": null}, {"entity_id": "MK104", "name": "Mạng lưới di sản Khmer Nam Bộ", "entity_type": "Chủ đề / tuyến", "legacy_province": "Sóc Trăng", "current_admin_2026": "Cần Thơ", "location_text": "ĐBSCL", "community": "Khmer", "category": "Cultural route", "verified_summary": "Entity tổng hợp nối múa Rom Vong, nhạc Ngũ âm, Rô-băm, Chầm riêng Chà Pây, Oóc Om Bóc, ghe Ngo và chữ lá Buông.", "period": "", "heritage_status": "", "app_content_hook": "Một tuyến khám phá xuyên địa phương, không bị giới hạn bởi ranh giới hành chính.", "source_id": "S13", "verification_grade": "B", "record_status": "CURATED_SYNTHESIS", "notes": "", "lat": null, "lng": null, "source": {"source_id": "S13", "organization": "Cục Di sản văn hóa", "title": "Múa Rom vong của người Khmer tỉnh Sóc Trăng", "url": "https://dsvh.gov.vn/mua-rom-vong-cua-nguoi-khmer-tinh-soc-trang-3205", "source_level": "National official", "default_grade": "A"}, "image": null}];
+const relations=[{"relation_id": "R001", "source_entity_id": "MK004", "relation_type": "IS_EXPRESSION_OF", "target_entity_id": "MK003", "verification_grade": "A", "notes": "", "source_name": "Chợ nổi Cái Răng", "target_name": "Văn hóa Chợ nổi Cái Răng"}, {"relation_id": "R002", "source_entity_id": "MK005", "relation_type": "USED_IN", "target_entity_id": "MK003", "verification_grade": "B", "notes": "Cần field verification sâu hơn", "source_name": "Cây bẹo", "target_name": "Văn hóa Chợ nổi Cái Răng"}, {"relation_id": "R003", "source_entity_id": "MK006", "relation_type": "USED_IN", "target_entity_id": "MK003", "verification_grade": "A", "notes": "", "source_name": "Ghe thương hồ", "target_name": "Văn hóa Chợ nổi Cái Răng"}, {"relation_id": "R004", "source_entity_id": "MK002", "relation_type": "ASSOCIATED_WITH", "target_entity_id": "MK009", "verification_grade": "A", "notes": "", "source_name": "Hò Cần Thơ", "target_name": "Sông Hậu trong văn hóa Nam Bộ"}, {"relation_id": "R005", "source_entity_id": "MK010", "relation_type": "PRACTICES", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "Không gian biểu diễn đờn ca tài tử", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R006", "source_entity_id": "MK084", "relation_type": "USED_IN", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "Đàn kìm", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R007", "source_entity_id": "MK085", "relation_type": "USED_IN", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "Đàn cò", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R008", "source_entity_id": "MK086", "relation_type": "USED_IN", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "Đàn tranh", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R009", "source_entity_id": "MK087", "relation_type": "USED_IN", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "Đàn tỳ bà", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R010", "source_entity_id": "MK088", "relation_type": "USED_IN", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "Đàn bầu", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R011", "source_entity_id": "MK089", "relation_type": "USED_IN", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "Sáo trúc trong Đờn ca tài tử", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R012", "source_entity_id": "MK090", "relation_type": "REPERTOIRE_OF", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "20 bài bản chính của Đờn ca tài tử", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R013", "source_entity_id": "MK091", "relation_type": "REPERTOIRE_OF", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "72 bài cổ điển trong hệ Đờn ca tài tử", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R014", "source_entity_id": "MK092", "relation_type": "TRANSMITS", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "Truyền nghề Đờn ca tài tử theo lối truyền khẩu", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R015", "source_entity_id": "MK093", "relation_type": "TECHNIQUE_OF", "target_entity_id": "MK001", "verification_grade": "A", "notes": "", "source_name": "Ứng tác trong Đờn ca tài tử", "target_name": "Đờn ca tài tử Nam Bộ"}, {"relation_id": "R016", "source_entity_id": "MK012", "relation_type": "PRACTICED_AT", "target_entity_id": "MK011", "verification_grade": "A", "notes": "", "source_name": "Nghề trồng hoa kiểng Sa Đéc", "target_name": "Làng hoa Sa Đéc"}, {"relation_id": "R017", "source_entity_id": "MK013", "relation_type": "TECHNIQUE_OF", "target_entity_id": "MK012", "verification_grade": "A", "notes": "", "source_name": "Kỹ thuật trồng hoa trên giàn", "target_name": "Nghề trồng hoa kiểng Sa Đéc"}, {"relation_id": "R018", "source_entity_id": "MK014", "relation_type": "PART_OF", "target_entity_id": "MK011", "verification_grade": "A", "notes": "", "source_name": "Tân Quy Đông", "target_name": "Làng hoa Sa Đéc"}, {"relation_id": "R019", "source_entity_id": "MK016", "relation_type": "ASSOCIATED_WITH", "target_entity_id": "MK015", "verification_grade": "A", "notes": "", "source_name": "Nguyễn Sinh Sắc", "target_name": "Khu di tích Nguyễn Sinh Sắc"}, {"relation_id": "R020", "source_entity_id": "MK017", "relation_type": "PART_OF", "target_entity_id": "MK015", "verification_grade": "A", "notes": "", "source_name": "Làng Hòa An xưa", "target_name": "Khu di tích Nguyễn Sinh Sắc"}, {"relation_id": "R021", "source_entity_id": "MK018", "relation_type": "DISPLAYED_AT", "target_entity_id": "MK017", "verification_grade": "A", "notes": "", "source_name": "Nhà bát dần Nam Bộ", "target_name": "Làng Hòa An xưa"}, {"relation_id": "R022", "source_entity_id": "MK019", "relation_type": "DISPLAYED_AT", "target_entity_id": "MK017", "verification_grade": "A", "notes": "", "source_name": "Nhà chữ Đinh Nam Bộ", "target_name": "Làng Hòa An xưa"}, {"relation_id": "R023", "source_entity_id": "MK020", "relation_type": "DISPLAYED_AT", "target_entity_id": "MK017", "verification_grade": "A", "notes": "", "source_name": "Nghề xay lúa giã gạo Nam Bộ", "target_name": "Làng Hòa An xưa"}, {"relation_id": "R024", "source_entity_id": "MK022", "relation_type": "REPRESENTS", "target_entity_id": "MK021", "verification_grade": "A", "notes": "", "source_name": "Khu di tích Óc Eo – Ba Thê", "target_name": "Văn hóa Óc Eo"}, {"relation_id": "R025", "source_entity_id": "MK023", "relation_type": "PART_OF", "target_entity_id": "MK022", "verification_grade": "A", "notes": "", "source_name": "Núi Ba Thê – khu A", "target_name": "Khu di tích Óc Eo – Ba Thê"}, {"relation_id": "R026", "source_entity_id": "MK024", "relation_type": "PART_OF", "target_entity_id": "MK022", "verification_grade": "A", "notes": "", "source_name": "Đô thị cổ Óc Eo – khu B", "target_name": "Khu di tích Óc Eo – Ba Thê"}, {"relation_id": "R027", "source_entity_id": "MK025", "relation_type": "PART_OF", "target_entity_id": "MK022", "verification_grade": "A", "notes": "", "source_name": "Giồng Xoài – khu C", "target_name": "Khu di tích Óc Eo – Ba Thê"}, {"relation_id": "R028", "source_entity_id": "MK026", "relation_type": "PART_OF", "target_entity_id": "MK022", "verification_grade": "A", "notes": "", "source_name": "Nền Chùa – khu D", "target_name": "Khu di tích Óc Eo – Ba Thê"}, {"relation_id": "R029", "source_entity_id": "MK027", "relation_type": "LOCATED_IN", "target_entity_id": "MK023", "verification_grade": "A", "notes": "", "source_name": "Linh Sơn tự", "target_name": "Núi Ba Thê – khu A"}, {"relation_id": "R030", "source_entity_id": "MK028", "relation_type": "PART_OF", "target_entity_id": "MK024", "verification_grade": "A", "notes": "", "source_name": "Hệ thống kênh cổ Óc Eo", "target_name": "Đô thị cổ Óc Eo – khu B"}, {"relation_id": "R031", "source_entity_id": "MK029", "relation_type": "ASSOCIATED_WITH", "target_entity_id": "MK021", "verification_grade": "A", "notes": "", "source_name": "Tượng thần Surya Óc Eo", "target_name": "Văn hóa Óc Eo"}, {"relation_id": "R032", "source_entity_id": "MK030", "relation_type": "ASSOCIATED_WITH", "target_entity_id": "MK021", "verification_grade": "A", "notes": "", "source_name": "Tượng thần Vishnu Óc Eo", "target_name": "Văn hóa Óc Eo"}, {"relation_id": "R033", "source_entity_id": "MK031", "relation_type": "ASSOCIATED_WITH", "target_entity_id": "MK021", "verification_grade": "A", "notes": "", "source_name": "Tượng Phật Bình Hòa", "target_name": "Văn hóa Óc Eo"}, {"relation_id": "R034", "source_entity_id": "MK032", "relation_type": "ASSOCIATED_WITH", "target_entity_id": "MK021", "verification_grade": "A", "notes": "", "source_name": "Tượng Phật Sa Đéc", "target_name": "Văn hóa Óc Eo"}, {"relation_id": "R035", "source_entity_id": "MK034", "relation_type": "PART_OF", "target_entity_id": "MK033", "verification_grade": "A", "notes": "", "source_name": "Lễ tắm Bà (Mộc Dục)", "target_name": "Lễ hội Vía Bà Chúa Xứ Núi Sam"}, {"relation_id": "R036", "source_entity_id": "MK035", "relation_type": "PART_OF", "target_entity_id": "MK033", "verification_grade": "A", "notes": "", "source_name": "Lễ rước tượng Bà Chúa Xứ", "target_name": "Lễ hội Vía Bà Chúa Xứ Núi Sam"}, {"relation_id": "R037", "source_entity_id": "MK036", "relation_type": "PRACTICED_BY", "target_entity_id": "MK038", "verification_grade": "A", "notes": "", "source_name": "Tri thức và kỹ thuật viết chữ trên lá Buông", "target_name": "Cộng đồng Khmer Nam Bộ"}, {"relation_id": "R038", "source_entity_id": "MK037", "relation_type": "MATERIAL_OF", "target_entity_id": "MK036", "verification_grade": "A", "notes": "", "source_name": "Lá Buông", "target_name": "Tri thức và kỹ thuật viết chữ trên lá Buông"}, {"relation_id": "R039", "source_entity_id": "MK039", "relation_type": "PRACTICED_BY", "target_entity_id": "MK038", "verification_grade": "A", "notes": "", "source_name": "Múa Rom Vong", "target_name": "Cộng đồng Khmer Nam Bộ"}, {"relation_id": "R040", "source_entity_id": "MK042", "relation_type": "PRACTICED_BY", "target_entity_id": "MK038", "verification_grade": "A", "notes": "", "source_name": "Nhạc Ngũ âm Khmer Sóc Trăng", "target_name": "Cộng đồng Khmer Nam Bộ"}, {"relation_id": "R041", "source_entity_id": "MK043", "relation_type": "PRACTICED_BY", "target_entity_id": "MK038", "verification_grade": "A", "notes": "", "source_name": "Nghệ thuật Rô-băm Sóc Trăng", "target_name": "Cộng đồng Khmer Nam Bộ"}, {"relation_id": "R042", "source_entity_id": "MK048", "relation_type": "PRACTICED_BY", "target_entity_id": "MK038", "verification_grade": "A", "notes": "", "source_name": "Lễ hội Oóc Om Bóc", "target_name": "Cộng đồng Khmer Nam Bộ"}, {"relation_id": "R043", "source_entity_id": "MK049", "relation_type": "PRACTICED_BY", "target_entity_id": "MK038", "verification_grade": "A", "notes": "", "source_name": "Lễ hội đua ghe Ngo", "target_name": "Cộng đồng Khmer Nam Bộ"}, {"relation_id": "R044", "source_entity_id": "MK056", "relation_type": "PRACTICED_BY", "target_entity_id": "MK038", "verification_grade": "A", "notes": "", "source_name": "Chầm riêng Chà Pây", "target_name": "Cộng đồng Khmer Nam Bộ"}, {"relation_id": "R045", "source_entity_id": "MK040", "relation_type": "PART_OF", "target_entity_id": "MK039", "verification_grade": "A", "notes": "", "source_name": "Động tác tay Chíp", "target_name": "Múa Rom Vong"}, {"relation_id": "R046", "source_entity_id": "MK041", "relation_type": "PART_OF", "target_entity_id": "MK039", "verification_grade": "A", "notes": "", "source_name": "Động tác Thồ Thuôl", "target_name": "Múa Rom Vong"}, {"relation_id": "R047", "source_entity_id": "MK044", "relation_type": "PRACTICES", "target_entity_id": "MK043", "verification_grade": "A", "notes": "", "source_name": "Đoàn Rô-băm Resmay Bưng Chông", "target_name": "Nghệ thuật Rô-băm Sóc Trăng"}, {"relation_id": "R048", "source_entity_id": "MK045", "relation_type": "USED_IN", "target_entity_id": "MK043", "verification_grade": "A", "notes": "", "source_name": "Mặt nạ chằn Rô-băm", "target_name": "Nghệ thuật Rô-băm Sóc Trăng"}, {"relation_id": "R049", "source_entity_id": "MK046", "relation_type": "CHARACTER_IN", "target_entity_id": "MK043", "verification_grade": "A", "notes": "", "source_name": "Hanuman trong Rô-băm", "target_name": "Nghệ thuật Rô-băm Sóc Trăng"}, {"relation_id": "R050", "source_entity_id": "MK047", "relation_type": "SOURCE_STORY_FOR", "target_entity_id": "MK043", "verification_grade": "B", "notes": "Cần nguồn nghiên cứu chuyên sâu bổ sung", "source_name": "Reamker", "target_name": "Nghệ thuật Rô-băm Sóc Trăng"}, {"relation_id": "R051", "source_entity_id": "MK049", "relation_type": "PART_OF", "target_entity_id": "MK048", "verification_grade": "A", "notes": "", "source_name": "Lễ hội đua ghe Ngo", "target_name": "Lễ hội Oóc Om Bóc"}, {"relation_id": "R052", "source_entity_id": "MK050", "relation_type": "USED_IN", "target_entity_id": "MK049", "verification_grade": "A", "notes": "", "source_name": "Ghe Ngo", "target_name": "Lễ hội đua ghe Ngo"}, {"relation_id": "R053", "source_entity_id": "MK051", "relation_type": "PRACTICED_AT", "target_entity_id": "MK053", "verification_grade": "A", "notes": "", "source_name": "Nghề làm bánh Pía", "target_name": "Vũng Thơm"}, {"relation_id": "R054", "source_entity_id": "MK052", "relation_type": "PRODUCT_OF", "target_entity_id": "MK051", "verification_grade": "A", "notes": "", "source_name": "Bánh Pía", "target_name": "Nghề làm bánh Pía"}, {"relation_id": "R055", "source_entity_id": "MK054", "relation_type": "ASSOCIATED_WITH", "target_entity_id": "MK055", "verification_grade": "A", "notes": "", "source_name": "Âu Minh Xương", "target_name": "Lò bánh Công Lập Thành"}, {"relation_id": "R056", "source_entity_id": "MK055", "relation_type": "PART_OF_HISTORY_OF", "target_entity_id": "MK051", "verification_grade": "A", "notes": "", "source_name": "Lò bánh Công Lập Thành", "target_name": "Nghề làm bánh Pía"}, {"relation_id": "R057", "source_entity_id": "MK100", "relation_type": "ASSOCIATED_WITH", "target_entity_id": "MK051", "verification_grade": "A", "notes": "", "source_name": "Cộng đồng Hoa Triều Châu ở Sóc Trăng", "target_name": "Nghề làm bánh Pía"}, {"relation_id": "R058", "source_entity_id": "MK101", "relation_type": "TECHNIQUE_OF", "target_entity_id": "MK051", "verification_grade": "A", "notes": "", "source_name": "Vỏ bánh Pía hai lớp", "target_name": "Nghề làm bánh Pía"}, {"relation_id": "R059", "source_entity_id": "MK102", "relation_type": "VARIANT_OF", "target_entity_id": "MK052", "verification_grade": "A", "notes": "", "source_name": "Bánh Pía can xại", "target_name": "Bánh Pía"}, {"relation_id": "R060", "source_entity_id": "MK057", "relation_type": "USED_IN", "target_entity_id": "MK056", "verification_grade": "A", "notes": "", "source_name": "Đàn Chà Pây", "target_name": "Chầm riêng Chà Pây"}, {"relation_id": "R061", "source_entity_id": "MK058", "relation_type": "PRACTICES", "target_entity_id": "MK056", "verification_grade": "A", "notes": "", "source_name": "Nghệ nhân Thạch Mâu", "target_name": "Chầm riêng Chà Pây"}, {"relation_id": "R062", "source_entity_id": "MK060", "relation_type": "ASSOCIATED_WITH", "target_entity_id": "MK059", "verification_grade": "A", "notes": "", "source_name": "Phú Lễ", "target_name": "Hát Sắc bùa Phú Lễ"}, {"relation_id": "R063", "source_entity_id": "MK061", "relation_type": "EXPRESSES", "target_entity_id": "MK062", "verification_grade": "A", "notes": "", "source_name": "Lễ hội Nghinh Ông Bình Đại", "target_name": "Tín ngưỡng thờ cá Ông ở ven biển Tây Nam Bộ"}, {"relation_id": "R064", "source_entity_id": "MK064", "relation_type": "PRODUCES", "target_entity_id": "MK065", "verification_grade": "A", "notes": "", "source_name": "Nghề dệt chiếu lác Long An", "target_name": "Chiếu lác Nam Bộ"}, {"relation_id": "R065", "source_entity_id": "MK067", "relation_type": "HOSTS", "target_entity_id": "MK066", "verification_grade": "A", "notes": "", "source_name": "Tầm Vu", "target_name": "Lễ Làm chay"}, {"relation_id": "R066", "source_entity_id": "MK068", "relation_type": "HOSTS", "target_entity_id": "MK066", "verification_grade": "A", "notes": "", "source_name": "Đình Tân Xuân", "target_name": "Lễ Làm chay"}, {"relation_id": "R067", "source_entity_id": "MK069", "relation_type": "PART_OF", "target_entity_id": "MK066", "verification_grade": "A", "notes": "", "source_name": "Nghi thức Xô giàn – đưa khách", "target_name": "Lễ Làm chay"}, {"relation_id": "R068", "source_entity_id": "MK070", "relation_type": "USED_IN", "target_entity_id": "MK069", "verification_grade": "A", "notes": "", "source_name": "Thuyền giấy trong Lễ Làm chay", "target_name": "Nghi thức Xô giàn – đưa khách"}, {"relation_id": "R069", "source_entity_id": "MK071", "relation_type": "INTERPRETS", "target_entity_id": "MK063", "verification_grade": "A", "notes": "", "source_name": "Ký ức khai phá Nam Bộ qua Việc lề", "target_name": "Tục cúng Việc lề"}, {"relation_id": "R070", "source_entity_id": "MK073", "relation_type": "HISTORICAL_NAME_ASSOCIATED_WITH", "target_entity_id": "MK072", "verification_grade": "A", "notes": "", "source_name": "Muối Ba Thắc", "target_name": "Nghề làm muối Bạc Liêu"}, {"relation_id": "R071", "source_entity_id": "MK074", "relation_type": "PRACTICES", "target_entity_id": "MK072", "verification_grade": "A", "notes": "", "source_name": "Diêm dân Bạc Liêu", "target_name": "Nghề làm muối Bạc Liêu"}, {"relation_id": "R072", "source_entity_id": "MK076", "relation_type": "USED_IN", "target_entity_id": "MK075", "verification_grade": "A", "notes": "", "source_name": "Kèo ong", "target_name": "Nghề gác kèo ong U Minh"}, {"relation_id": "R073", "source_entity_id": "MK077", "relation_type": "ORGANIZES_PRACTICE_OF", "target_entity_id": "MK075", "verification_grade": "A", "notes": "", "source_name": "Đoàn Phong ngạn", "target_name": "Nghề gác kèo ong U Minh"}, {"relation_id": "R074", "source_entity_id": "MK078", "relation_type": "PRODUCT_OF", "target_entity_id": "MK075", "verification_grade": "A", "notes": "", "source_name": "Mật ong rừng U Minh Hạ", "target_name": "Nghề gác kèo ong U Minh"}, {"relation_id": "R075", "source_entity_id": "MK075", "relation_type": "DEPENDS_ON", "target_entity_id": "MK079", "verification_grade": "A", "notes": "", "source_name": "Nghề gác kèo ong U Minh", "target_name": "Rừng tràm U Minh Hạ như cảnh quan văn hóa"}, {"relation_id": "R076", "source_entity_id": "MK081", "relation_type": "HOSTS", "target_entity_id": "MK080", "verification_grade": "A", "notes": "", "source_name": "Lăng Ông Nam Hải Sông Đốc", "target_name": "Lễ hội Nghinh Ông Sông Đốc"}, {"relation_id": "R077", "source_entity_id": "MK082", "relation_type": "PART_OF", "target_entity_id": "MK080", "verification_grade": "A", "notes": "", "source_name": "Rước Ông trên biển Sông Đốc", "target_name": "Lễ hội Nghinh Ông Sông Đốc"}, {"relation_id": "R078", "source_entity_id": "MK080", "relation_type": "EXPRESSES", "target_entity_id": "MK083", "verification_grade": "A", "notes": "", "source_name": "Lễ hội Nghinh Ông Sông Đốc", "target_name": "Tín ngưỡng cá Ông ở Sông Đốc"}, {"relation_id": "R079", "source_entity_id": "MK083", "relation_type": "PART_OF", "target_entity_id": "MK062", "verification_grade": "A", "notes": "", "source_name": "Tín ngưỡng cá Ông ở Sông Đốc", "target_name": "Tín ngưỡng thờ cá Ông ở ven biển Tây Nam Bộ"}, {"relation_id": "R080", "source_entity_id": "MK003", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK103", "verification_grade": "B", "notes": "Curated route", "source_name": "Văn hóa Chợ nổi Cái Răng", "target_name": "Mạng lưới văn hóa sông nước Mekong"}, {"relation_id": "R081", "source_entity_id": "MK002", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK103", "verification_grade": "B", "notes": "Curated route", "source_name": "Hò Cần Thơ", "target_name": "Mạng lưới văn hóa sông nước Mekong"}, {"relation_id": "R082", "source_entity_id": "MK094", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK103", "verification_grade": "B", "notes": "Curated route", "source_name": "Chợ nổi Cái Bè", "target_name": "Mạng lưới văn hóa sông nước Mekong"}, {"relation_id": "R083", "source_entity_id": "MK099", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK103", "verification_grade": "B", "notes": "Curated route", "source_name": "Cù lao Thới Sơn", "target_name": "Mạng lưới văn hóa sông nước Mekong"}, {"relation_id": "R084", "source_entity_id": "MK039", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK104", "verification_grade": "B", "notes": "Curated route", "source_name": "Múa Rom Vong", "target_name": "Mạng lưới di sản Khmer Nam Bộ"}, {"relation_id": "R085", "source_entity_id": "MK042", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK104", "verification_grade": "B", "notes": "Curated route", "source_name": "Nhạc Ngũ âm Khmer Sóc Trăng", "target_name": "Mạng lưới di sản Khmer Nam Bộ"}, {"relation_id": "R086", "source_entity_id": "MK043", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK104", "verification_grade": "B", "notes": "Curated route", "source_name": "Nghệ thuật Rô-băm Sóc Trăng", "target_name": "Mạng lưới di sản Khmer Nam Bộ"}, {"relation_id": "R087", "source_entity_id": "MK048", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK104", "verification_grade": "B", "notes": "Curated route", "source_name": "Lễ hội Oóc Om Bóc", "target_name": "Mạng lưới di sản Khmer Nam Bộ"}, {"relation_id": "R088", "source_entity_id": "MK049", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK104", "verification_grade": "B", "notes": "Curated route", "source_name": "Lễ hội đua ghe Ngo", "target_name": "Mạng lưới di sản Khmer Nam Bộ"}, {"relation_id": "R089", "source_entity_id": "MK056", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK104", "verification_grade": "B", "notes": "Curated route", "source_name": "Chầm riêng Chà Pây", "target_name": "Mạng lưới di sản Khmer Nam Bộ"}, {"relation_id": "R090", "source_entity_id": "MK036", "relation_type": "PART_OF_ROUTE", "target_entity_id": "MK104", "verification_grade": "B", "notes": "Curated route", "source_name": "Tri thức và kỹ thuật viết chữ trên lá Buông", "target_name": "Mạng lưới di sản Khmer Nam Bộ"}];
+const stories={"Nghề gác kèo ong U Minh": [["RỪNG U MINH", "Người thợ không nuôi ong.", "Họ đi vào rừng tràm, đọc nắng, gió và tán rừng rồi dựng một chiếc kèo. Sau đó chờ ong rừng tự chọn nơi này làm tổ."], ["MỘT CHIẾC KÈO", "Đặt sai chỗ, ong sẽ không đến.", "Tri thức nằm ở cách chọn trảng, hướng nắng, luồng gió, mùa hoa và vị trí của cây tràm — những điều khó học chỉ bằng sách."], ["CON NGƯỜI", "Nghề là một cách hiểu khu rừng.", "Từ chiếc kèo, câu chuyện mở sang Đoàn Phong ngạn, mật ong U Minh Hạ và những quy ước cộng đồng quanh việc sử dụng tài nguyên."]], "Khu di tích Óc Eo – Ba Thê": [["ÓC EO · BA THÊ", "Gần 2.000 năm trước, miền Tây đã kết nối với thế giới.", "Dấu tích cư trú, kiến trúc, tôn giáo và kênh cổ cho phép người dùng hình dung một mạng lưới đô thị và giao thương trên đồng bằng Nam Bộ."], ["KÊNH CỔ", "Hãy tưởng tượng dòng kênh như những tuyến đường.", "Từ đây có thể chạm sang hiện vật Surya, Vishnu, tượng Phật, rồi tiếp tục sang tôn giáo và mạng lưới trao đổi rộng hơn của Đông Nam Á cổ."], ["RABBIT HOLE", "Một di tích có thể mở ra cả một thế giới.", "Đây là kiểu trải nghiệm app muốn tạo ra: Place → Object → Belief → Trade → Region → Story."]], "Nghệ thuật Rô-băm Sóc Trăng": [["KHMER NAM BỘ", "Một sân khấu không chỉ là một tiết mục.", "Rô-băm nối mặt nạ, âm nhạc, múa, nhân vật và kho truyện của cộng đồng Khmer Nam Bộ."], ["NHÂN VẬT", "Hanuman cũng xuất hiện ở đây.", "Chạm vào một nhân vật có thể dẫn sang Reamker, rồi mở rộng sang Ramayana và mạng lưới truyện kể Đông Nam Á."], ["CỘNG ĐỒNG", "Di sản tồn tại vì vẫn có người thực hành.", "Từ story, app đưa người dùng sang đoàn diễn, nghệ nhân, lễ hội và những nơi còn có thể gặp loại hình này ngoài đời."]]};
+const byId=Object.fromEntries(entities.map(x=>[x.entity_id,x]));
+const byName=Object.fromEntries(entities.map(x=>[x.name,x]));
+let activeFilter='all',currentStory=null,storyStep=0,map;
+const featuredImage="https://camau.gov.vn/Datafiles/camau-gov-vn/wps/wcm/connect/5452f57f-9286-4a08-b4b4-ef84a852aac5/5/5-jpg-3fmod-3dajperes-26amp-3bcvid-3d.png";
+document.getElementById('featureImg').style.backgroundImage=`url("${featuredImage}")`;
+
+function emoji(e){const s=(e.entity_type+' '+e.category).toLowerCase();if(s.includes('nghệ nhân')||s.includes('nhân vật'))return'👤';if(s.includes('âm nhạc')||s.includes('nhạc cụ')||s.includes('dân ca'))return'🎵';if(s.includes('khảo cổ')||s.includes('hiện vật'))return'🏺';if(s.includes('lễ hội')||s.includes('nghi lễ'))return'🏮';if(s.includes('nghề')||s.includes('thủ công'))return'🧵';if(s.includes('ẩm thực'))return'🥮';if(s.includes('địa điểm')||s.includes('địa danh'))return'📍';if(s.includes('truyện'))return'📖';return'◆'}
+function matchFilter(e){if(activeFilter==='all')return true;return(e.entity_type+' '+e.category+' '+e.community).toLowerCase().includes(activeFilter.toLowerCase())}
+function renderResults(){const q=document.getElementById('q').value.trim().toLowerCase();const arr=entities.filter(e=>matchFilter(e)&&(!q||(e.name+' '+e.category+' '+e.community+' '+e.legacy_province).toLowerCase().includes(q))).slice(0,40);document.getElementById('count').textContent=arr.length+(arr.length===40?'＋':'');document.getElementById('results').innerHTML=arr.length?arr.map(e=>`<button class="result" onclick="openEntity('${e.entity_id}')"><div class="icon">${emoji(e)}</div><div><strong>${e.name}</strong><small>${e.entity_type} · ${e.legacy_province}</small></div></button>`).join(''):'<div class="empty">Không tìm thấy record phù hợp.</div>'}
+document.getElementById('q').addEventListener('input',renderResults);document.querySelectorAll('.chip').forEach(b=>b.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));b.classList.add('on');activeFilter=b.dataset.filter;renderResults()});renderResults();
+
+function initMap(){if(!window.L){document.getElementById('map').innerHTML='<div style="display:grid;place-items:center;height:100%;padding:40px;text-align:center"><div><h2>Không tải được bản đồ</h2><p class="muted">Khi mở file với kết nối Internet, OpenStreetMap sẽ xuất hiện ở đây.</p></div></div>';return}
+map=L.map('map',{zoomControl:false}).setView([9.85,105.55],8);L.control.zoom({position:'bottomleft'}).addTo(map);L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© OpenStreetMap contributors'}).addTo(map);
+let n=0;entities.filter(e=>e.lat).forEach(e=>{const ic=L.divIcon({className:'custom-pin',html:`<div class="pin-dot">${emoji(e)}</div>`,iconSize:[36,36],iconAnchor:[18,18]});const m=L.marker([e.lat,e.lng],{icon:ic}).addTo(map).on('click',()=>openEntity(e.entity_id));m.bindTooltip(e.name,{direction:'top',offset:[0,-12],opacity:.95});n++});document.getElementById('mappedCount').textContent=n}
+initMap();function focusMekong(){if(map)map.flyTo([9.75,105.45],8,{duration:1.2})}
+function relatedFor(id){return relations.filter(r=>r.source_entity_id===id||r.target_entity_id===id).slice(0,8).map(r=>({name:r.source_entity_id===id?r.target_name:r.source_name,type:r.relation_type}))}
+function openEntity(id){const e=byId[id];if(!e)return;document.getElementById('drawerName').textContent=e.name;document.getElementById('drawerType').textContent=(e.entity_type||'Cultural entity')+' · '+(e.legacy_province||'Mekong');document.getElementById('drawerHero').style.backgroundImage=e.image?`url("${e.image}")`:'linear-gradient(145deg,#496e5b,#d3b775)';document.getElementById('drawerMeta').innerHTML=[e.category,e.community,e.heritage_status,e.record_status].filter(Boolean).map(x=>`<span class="tag">${x}</span>`).join('');document.getElementById('drawerLead').textContent=e.verified_summary||'Đang bổ sung nội dung.';
+let action=[];if(stories[e.name])action.push(`<button class="primary" onclick="playStory(${JSON.stringify(e.name)})">Xem Story Mode →</button>`);if(e.lat)action.push(`<button class="ghost" style="margin-left:7px" onclick="closeDrawer();map.flyTo([${e.lat},${e.lng}],13,{duration:1.2})">Xem trên map</button>`);document.getElementById('drawerActions').innerHTML=action.join('');
+const rr=relatedFor(id);document.getElementById('drawerRelations').innerHTML=rr.length?rr.map(x=>`<div class="relation"><div><b>${x.type.replaceAll('_',' ')}</b></div><div>${x.name}</div></div>`).join(''):'<div class="muted" style="font-size:12px">Chưa có relationship trong v0.1.</div>';
+const s=e.source||{};document.getElementById('drawerSource').innerHTML=`<b>${s.organization||'Nguồn đang bổ sung'}</b><br>${s.title||''}<br><br><span>Verification: <b>${e.verification_grade}</b> · ${e.record_status}</span>${s.url?`<br><br><a href="${s.url}" target="_blank">Mở nguồn gốc ↗</a>`:''}`;document.getElementById('drawer').classList.add('open');if(e.lat&&map)map.panTo([e.lat,e.lng])}
+function openEntityByName(n){if(byName[n])openEntity(byName[n].entity_id)}function closeDrawer(){document.getElementById('drawer').classList.remove('open')}
+function playStory(name){if(!stories[name])return;currentStory=name;storyStep=0;closeDrawer();renderStory();document.getElementById('storyModal').classList.add('open')}
+function renderStory(){const arr=stories[currentStory],s=arr[storyStep],e=byName[currentStory];document.getElementById('playerImg').style.backgroundImage=e&&e.image?`url("${e.image}")`:'linear-gradient(145deg,#52745f,#d1af67)';document.getElementById('storyEyebrow').textContent=s[0];document.getElementById('storyTitle').textContent=s[1];document.getElementById('storyText').textContent=s[2];document.getElementById('progress').innerHTML=arr.map((_,i)=>`<div class="bar ${i<=storyStep?'done':''}"></div>`).join('');document.getElementById('nextBtn').textContent=storyStep===arr.length-1?'Mở hồ sơ văn hóa →':'Tiếp tục →'}
+function nextStory(){const arr=stories[currentStory];if(storyStep<arr.length-1){storyStep++;renderStory()}else{closeStory();openEntityByName(currentStory)}}function prevStory(){if(storyStep>0){storyStep--;renderStory()}}function closeStory(){document.getElementById('storyModal').classList.remove('open')}
+
+/* --- v0.3.1 interactions --- */
+const trails = [
+  {
+    id:"khmer-south",
+    title:"Khmer South",
+    subtitle:"Chữ · âm nhạc · sân khấu · lễ hội",
+    stops:[
+      "Tri thức và kỹ thuật viết chữ trên lá Buông",
+      "Nhạc Ngũ âm Khmer",
+      "Nghệ thuật Rô-băm Sóc Trăng",
+      "Lễ hội đua ghe Ngo",
+      "Chầm riêng Chà Pây"
+    ]
+  },
+  {
+    id:"river-market",
+    title:"Life on the River",
+    subtitle:"Chợ nổi · ghe · âm nhạc · nhà ở",
+    stops:[
+      "Chợ nổi Cái Răng",
+      "Cây bẹo",
+      "Ghe thương hồ",
+      "Đờn ca tài tử Nam Bộ",
+      "Nhà cổ Bình Thủy"
+    ]
+  },
+  {
+    id:"deep-south",
+    title:"Forest to Coast",
+    subtitle:"U Minh · mật ong · muối · tín ngưỡng biển",
+    stops:[
+      "Nghề gác kèo ong U Minh",
+      "Mật ong U Minh",
+      "Nghề làm muối Bạc Liêu",
+      "Lễ hội Nghinh Ông Sông Đốc"
+    ]
+  }
+];
+
+let trailLayer = null;
+function toggleTrails(){
+  const p=document.getElementById('trailPanel'), b=document.getElementById('trailBtn');
+  p.classList.toggle('open'); b.classList.toggle('active',p.classList.contains('open'));
+}
+function renderTrailList(){
+  document.getElementById('trailList').innerHTML=trails.map(t=>`
+    <button class="trail-item" onclick="showTrail('${t.id}')">
+      <strong>${t.title}</strong>
+      <small>${t.subtitle} · ${t.stops.length} stops</small>
+    </button>`).join('');
+}
+renderTrailList();
+
+function getEntityByName(name){ return entities.find(e=>e.name===name); }
+
+function showTrail(id){
+  const t=trails.find(x=>x.id===id); if(!t)return;
+  const panel=document.getElementById('trailPanel');
+  panel.innerHTML=`<div class="trail-head"><div class="eyebrow">CULTURAL TRAIL</div><h3>${t.title}</h3><div class="muted" style="font-size:11px">${t.subtitle}</div></div>
+    <div style="padding:0 14px">${t.stops.map((name,i)=>{
+      const e=getEntityByName(name);
+      return `<div class="trail-stop"><div class="n">${String(i+1).padStart(2,'0')}</div><div><button onclick="${e?`openEntity('${e.entity_id}')`:""}">${name}</button><div style="font-size:9px;color:#777;margin-top:3px">${e?`${e.entity_type} · ${e.legacy_province}`:"Đang bổ sung tọa độ"}</div></div></div>`
+    }).join('')}</div>
+    <div style="padding:12px 14px;display:flex;gap:8px"><button class="tool-btn" onclick="renderTrailList();document.getElementById('trailPanel').innerHTML='<div class=&quot;trail-head&quot;><div class=&quot;eyebrow&quot;>CURATED ROUTES</div><h3>Cultural Trails</h3></div><div id=&quot;trailList&quot;></div>';renderTrailList()">← All trails</button></div>`;
+
+  if(trailLayer && map){ map.removeLayer(trailLayer); trailLayer=null; }
+  if(map && window.L){
+    const pts=t.stops.map(getEntityByName).filter(e=>e && e.lat).map(e=>[e.lat,e.lng]);
+    if(pts.length>=2){
+      trailLayer=L.polyline(pts,{color:'#111713',weight:2,opacity:.8,dashArray:'5 7'}).addTo(map);
+      pts.forEach((p,i)=>{
+        L.circleMarker(p,{radius:9,color:'#111713',weight:1,fillColor:'#f4f1ea',fillOpacity:1})
+         .bindTooltip(String(i+1),{permanent:true,direction:'center',className:'trail-number'}).addTo(trailLayer);
+      });
+      map.fitBounds(trailLayer.getBounds(),{padding:[70,70]});
+    }
+  }
+}
+
+const savedKey='vietCulturePassportV031';
+function readSaved(){ try{return JSON.parse(localStorage.getItem(savedKey)||'[]')}catch(e){return[]} }
+function writeSaved(arr){ localStorage.setItem(savedKey,JSON.stringify(arr)); refreshPassport() }
+function toggleSave(id){
+  let arr=readSaved();
+  arr=arr.includes(id)?arr.filter(x=>x!==id):[id,...arr];
+  writeSaved(arr);
+  if(byId[id]) openEntity(id);
+}
+function refreshPassport(){
+  const arr=readSaved();
+  const es=arr.map(id=>byId[id]).filter(Boolean);
+  document.getElementById('savedCount').textContent=arr.length;
+  document.getElementById('passportTotal').textContent=arr.length;
+  document.getElementById('passportRegions').textContent=new Set(es.map(e=>e.legacy_province).filter(Boolean)).size;
+  document.getElementById('passportCats').textContent=new Set(es.map(e=>e.category).filter(Boolean)).size;
+  document.getElementById('savedList').innerHTML=es.length?es.map(e=>`
+    <div class="saved-item"><button onclick="closePassport();openEntity('${e.entity_id}')"><strong>${e.name}</strong><small>${e.category} · ${e.legacy_province}</small></button></div>`).join(''):
+    '<div class="muted" style="font-size:12px;padding-top:14px">Chưa lưu mục nào.</div>';
+}
+function openPassport(){ refreshPassport(); document.getElementById('passportDrawer').classList.add('open') }
+function closePassport(){ document.getElementById('passportDrawer').classList.remove('open') }
+refreshPassport();
+
+function requestNearby(){
+  if(!navigator.geolocation){ alert('Trình duyệt này không hỗ trợ định vị.'); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    if(!map)return;
+    const p=[pos.coords.latitude,pos.coords.longitude];
+    map.flyTo(p,12,{duration:1.2});
+    if(window.L){
+      L.circleMarker(p,{radius:6,color:'#111713',weight:2,fillColor:'#f4f1ea',fillOpacity:1}).addTo(map).bindTooltip('Bạn đang ở đây').openTooltip();
+      const candidates=entities.filter(e=>e.lat).map(e=>{
+        const d=Math.hypot(e.lat-p[0],(e.lng-p[1])*Math.cos(p[0]*Math.PI/180));
+        return {e,d};
+      }).sort((a,b)=>a.d-b.d).slice(0,5);
+      document.getElementById('trailPanel').classList.add('open');
+      document.getElementById('trailBtn').classList.add('active');
+      document.getElementById('trailPanel').innerHTML=`<div class="trail-head"><div class="eyebrow">NEARBY</div><h3>Gần bạn</h3><div class="muted" style="font-size:11px">Các điểm gần nhất trong dataset hiện có.</div></div>
+      <div style="padding:0 14px">${candidates.map((x,i)=>`<div class="trail-stop"><div class="n">${String(i+1).padStart(2,'0')}</div><div><button onclick="openEntity('${x.e.entity_id}')">${x.e.name}</button><div style="font-size:9px;color:#777;margin-top:3px">${x.e.legacy_province}</div></div></div>`).join('')}</div>`;
+    }
+  },()=>alert('Không lấy được vị trí. Bạn có thể tiếp tục dùng map và search bình thường.'),{enableHighAccuracy:false,timeout:8000,maximumAge:60000});
+}
+
+/* patch entity drawer with save + rabbit-hole layer */
+const _openEntityV03 = openEntity;
+openEntity = function(id){
+  _openEntityV03(id);
+  const e=byId[id]; if(!e)return;
+  const saved=readSaved().includes(id);
+  const actions=document.getElementById('drawerActions');
+  const existing=actions.innerHTML;
+  actions.innerHTML=`<div class="drawer-actions">${existing}<button class="ghost save-btn ${saved?'saved':''}" onclick="toggleSave('${id}')">${saved?'Saved ✓':'Save to Passport'}</button></div>`;
+  const rr=relatedFor(id).slice(0,6);
+  let rabbit=document.getElementById('drawerRabbit');
+  if(!rabbit){
+    rabbit=document.createElement('div');rabbit.id='drawerRabbit';rabbit.className='rabbit';
+    document.querySelector('.drawer-body').appendChild(rabbit);
+  }
+  rabbit.innerHTML=`<h4>Đi tiếp từ đây</h4><div class="rabbit-grid">${rr.map(x=>{
+    const target=entities.find(z=>z.name===x.name);
+    return `<button class="rabbit-card" ${target?`onclick="openEntity('${target.entity_id}')"`:''}><small>${x.type.replaceAll('_',' ')}</small><strong>${x.name}</strong></button>`;
+  }).join('')}</div>`;
+}
+
+</script>
+</body></html>
